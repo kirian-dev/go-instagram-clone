@@ -1,0 +1,18 @@
+server:
+  AppVersion: 1.0.0
+  Port: :5000
+  Mode: Development
+  ReadTimeout: 10
+  WriteTimeout: 10
+  CtxDefaultTimeout: 12
+  Debug: false
+  JwtSecretKey: mySecretKey
+
+postgres: 
+  PostgresDbname: go_instagram_clone_db
+  PostgresUser: postgres
+  PostgresPassword: postgres
+  PostgresPort: 5432
+  PostgresHost: localhost
+  PostgresSslMode: disable
+  PgDriver: pgx
