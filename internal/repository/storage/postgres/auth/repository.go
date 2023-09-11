@@ -1,14 +1,14 @@
 package auth
 
 import (
-	"github.com/jmoiron/sqlx"
+	"database/sql"
 )
 
 type Repository struct {
-	db *sqlx.DB
+	db *sql.DB
 }
 
-func New(db *sqlx.DB) *Repository {
+func New(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
