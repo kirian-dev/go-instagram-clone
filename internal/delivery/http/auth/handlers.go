@@ -10,12 +10,12 @@ import (
 
 type authHandlers struct {
 	cfg    *config.Config
-	logger logger.ZapLogger
+	log    *logger.ZapLogger
 	authUC useCase.AuthUseCase
 }
 
-func New(cfg *config.Config, log logger.ZapLogger, authUC useCase.AuthUseCase) *authHandlers {
-	return &authHandlers{cfg: cfg, logger: log, authUC: authUC}
+func New(cfg *config.Config, log *logger.ZapLogger, authUC useCase.AuthUseCase) *authHandlers {
+	return &authHandlers{cfg: cfg, log: log, authUC: authUC}
 }
 
 func (h *authHandlers) Register() echo.HandlerFunc {

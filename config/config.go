@@ -1,8 +1,9 @@
 package config
 
 import (
-	"errors"
+	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -24,6 +25,10 @@ type Config struct {
 	PostgresHost      string
 	PostgresSslMode   string
 	PgDriver          string
+	MaxOpenConns      int
+	MaxIdleConns      int
+	ConnMaxLifetime   time.Duration
+	ConnMaxIdleTime   time.Duration
 }
 
 func LoadConfig() (*Config, error) {
@@ -61,6 +66,26 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
+	cfg.MaxOpenConns, err = strconv.Atoi(os.Getenv("MaxOpenConns"))
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.MaxIdleConns, err = strconv.Atoi(os.Getenv("MaxIdleConns"))
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.ConnMaxLifetime, err = time.ParseDuration(os.Getenv("ConnMaxLifetime"))
+	if err != nil {
+		return nil, err
+	}
+
+	cfg.ConnMaxIdleTime, err = time.ParseDuration(os.Getenv("ConnMaxIdleTime"))
+	if err != nil {
+		return nil, err
+	}
+
 	if err := validateConfig(cfg); err != nil {
 		return nil, err
 	}
@@ -69,15 +94,32 @@ func LoadConfig() (*Config, error) {
 }
 
 func validateConfig(cfg *Config) error {
-	fields := []interface{}{
-		cfg.AppVersion, cfg.Port, cfg.Mode, cfg.CxtDefaultTimeout, cfg.Debug,
-		cfg.JwtSecretKey, cfg.PostgresDbname, cfg.PostgresUser, cfg.PostgresPassword,
-		cfg.PostgresPort, cfg.PostgresHost, cfg.PostgresSslMode, cfg.PgDriver,
+	requiredFields := []struct {
+		value interface{}
+		name  string
+	}{
+		{cfg.AppVersion, "AppVersion"},
+		{cfg.Port, "Port"},
+		{cfg.Mode, "Mode"},
+		{cfg.CxtDefaultTimeout, "CxtDefaultTimeout"},
+		{cfg.Debug, "Debug"},
+		{cfg.JwtSecretKey, "JwtSecretKey"},
+		{cfg.PostgresDbname, "PostgresDbname"},
+		{cfg.PostgresUser, "PostgresUser"},
+		{cfg.PostgresPassword, "PostgresPassword"},
+		{cfg.PostgresPort, "PostgresPort"},
+		{cfg.PostgresHost, "PostgresHost"},
+		{cfg.PostgresSslMode, "PostgresSslMode"},
+		{cfg.PgDriver, "PgDriver"},
+		{cfg.MaxOpenConns, "MaxOpenConns"},
+		{cfg.MaxIdleConns, "MaxIdleConns"},
+		{cfg.ConnMaxLifetime, "ConnMaxLifetime"},
+		{cfg.ConnMaxIdleTime, "ConnMaxIdleTime"},
 	}
 
-	for _, field := range fields {
-		if field == "" {
-			return errors.New("configuration variables must not be missing or empty")
+	for _, field := range requiredFields {
+		if field.value == "" {
+			return fmt.Errorf("configuration variable '%s' must not be missing or empty", field.name)
 		}
 	}
 

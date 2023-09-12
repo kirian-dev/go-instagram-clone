@@ -4,12 +4,13 @@ import (
 	"database/sql"
 )
 
-type Repository struct {
+type AuthRepository struct {
 	db *sql.DB
 }
 
-func New(db *sql.DB) *Repository {
-	return &Repository{db: db}
+func NewAuthRepository(db *sql.DB) *AuthRepository {
+	return &AuthRepository{db: db}
 }
 
-func (r *Repository) Register() {}
+func (ar *AuthRepository) Register() {
+}

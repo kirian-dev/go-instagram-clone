@@ -11,13 +11,13 @@ import (
 
 func (s *Server) Handlers(e *echo.Echo) error {
 	// Init repository
-	aRepo := authRepo.New(s.db)
+	aRepo := authRepo.NewAuthRepository(s.db)
 
 	// Init usecase
-	authUC := authUseCase.New(s.cfg, aRepo, s.logger)
+	authUC := authUseCase.New(s.cfg, aRepo, s.log)
 
 	// Init delivery
-	authHandlers := authHttp.New(s.cfg, s.logger, authUC)
+	authHandlers := authHttp.New(s.cfg, s.log, authUC)
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},

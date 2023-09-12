@@ -22,14 +22,14 @@ const (
 )
 
 type Server struct {
-	echo   *echo.Echo
-	cfg    *config.Config
-	logger logger.ZapLogger
-	db     *sql.DB
+	echo *echo.Echo
+	cfg  *config.Config
+	log  *logger.ZapLogger
+	db   *sql.DB
 }
 
-func New(cfg *config.Config, logger logger.ZapLogger, db *sql.DB) *Server {
-	return &Server{echo: echo.New(), cfg: cfg, logger: logger, db: db}
+func New(cfg *config.Config, log *logger.ZapLogger, db *sql.DB) *Server {
+	return &Server{echo: echo.New(), cfg: cfg, log: log, db: db}
 }
 
 func (s *Server) Run() error {
@@ -40,9 +40,9 @@ func (s *Server) Run() error {
 		MaxHeaderBytes: maxHeaderBytes,
 	}
 	go func() {
-		s.logger.Infof("Server is listening on PORT: %s", s.cfg.Port)
+		s.log.Infof("Server is listening on PORT: %s", s.cfg.Port)
 		if err := s.echo.StartServer(server); err != nil {
-			s.logger.Fatalf("Error starting Server: ", err)
+			s.log.Fatalf("Error starting Server: ", err)
 		}
 	}()
 
@@ -58,6 +58,6 @@ func (s *Server) Run() error {
 	ctx, shutdown := context.WithTimeout(context.Background(), ctxTimeout*time.Second)
 	defer shutdown()
 
-	s.logger.Info("Server Exited Properly")
+	s.log.Info("Server Exited Properly")
 	return s.echo.Server.Shutdown(ctx)
 }
