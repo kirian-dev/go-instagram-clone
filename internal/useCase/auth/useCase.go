@@ -1,9 +1,15 @@
 package auth
 
 import (
+	"context"
+	"errors"
 	"go-instagram-clone/config"
+	"go-instagram-clone/internal/domain/models"
 	"go-instagram-clone/internal/repository/storage/postgres"
+	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/pkg/logger"
+	"go-instagram-clone/pkg/utils"
+	"net/http"
 )
 
 type authUC struct {
@@ -16,4 +22,22 @@ func New(cfg *config.Config, authRepo postgres.AuthRepository, log *logger.ZapLo
 	return &authUC{cfg: cfg, authRepo: authRepo, log: log}
 }
 
-func (u *authUC) Register() {}
+func (u *authUC) Register(ctx context.Context, user *models.User) (*models.User, error) {
+	existsUser, err := u.authRepo.GetByEmail(ctx, user)
+	if existsUser != nil || err == nil {
+		errorMessage := http.StatusText(http.StatusBadRequest) + ": " + e.ErrInvalidCredentials
+		return nil, errors.New(errorMessage)
+	}
+
+	if err = user.BeforeCreate(); err != nil {
+		return nil, err
+	}
+
+	newUser, err := u.authRepo.Register(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+	utils.DeletePassword(newUser.Password)
+
+	return newUser, nil
+}
