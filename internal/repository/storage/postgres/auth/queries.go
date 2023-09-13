@@ -16,10 +16,10 @@ const (
     age,
     created_at,
     updated_at,
-    login_date
+    last_login_at
   )
   VALUES (
-    $1, $2, $3, $4, COALESCE(NULLIF($5, ''), 'user'), $6, $7, $8, $9, $10, $11, $12, $13, now(), now(), now()
+    $1, $2, $3, $4, COALESCE(NULLIF($5, ''), 'user'), $6, $7, $8, $9, $10, $11, now(), now(), now()
   )
   RETURNING *
 `
