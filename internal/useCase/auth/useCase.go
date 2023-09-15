@@ -9,6 +9,8 @@ import (
 	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/pkg/logger"
 	"go-instagram-clone/pkg/security"
+
+	"github.com/google/uuid"
 )
 
 type authUC struct {
@@ -98,4 +100,56 @@ func (uc *authUC) GetUsers(ctx context.Context) ([]*models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (uc *authUC) GetUserByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
+	user, err := uc.authRepo.GetByID(ctx, userID)
+	if err != nil {
+		uc.log.Error("Error in GetUser:", err)
+		return nil, err
+	}
+
+	security.DeletePassword(&user.Password)
+	return user, nil
+}
+
+func (uc *authUC) UpdateUser(
+	ctx context.Context,
+	user *models.User,
+	userID uuid.UUID,
+) (*models.User, error) {
+	existingUser, err := uc.authRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, errors.New(e.ErrUserNotFound)
+	}
+
+	existingUser.FirstName = user.FirstName
+	existingUser.LastName = user.LastName
+	existingUser.Email = user.Email
+	existingUser.Password = user.Password
+	existingUser.Role = user.Role
+	existingUser.ProfilePictureURL = user.ProfilePictureURL
+	existingUser.Phone = user.Phone
+	existingUser.City = user.City
+	existingUser.Gender = user.Gender
+	existingUser.Birthday = user.Birthday
+	existingUser.Age = user.Age
+
+	updatedUser, err := uc.authRepo.UpdateUser(ctx, existingUser)
+	if err != nil {
+		uc.log.Error("Error in UpdateUser:", err)
+		return nil, err
+	}
+	security.DeletePassword(&updatedUser.Password)
+
+	return updatedUser, nil
+}
+
+func (uc *authUC) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	err := uc.authRepo.DeleteUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -51,6 +51,10 @@ func (r *authRepository) GetByPhone(ctx context.Context, user *models.User) (*mo
 	return r.getUserByQuery(ctx, getByPhoneQuery, user.Phone)
 }
 
+func (r *authRepository) GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
+	return r.getUserByQuery(ctx, getByIDQuery, userID)
+}
+
 func (r *authRepository) GetUsers(ctx context.Context) ([]*models.User, error) {
 	rows, err := r.db.QueryContext(ctx, getUsersQuery)
 	if err != nil {
@@ -69,6 +73,39 @@ func (r *authRepository) GetUsers(ctx context.Context) ([]*models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *authRepository) UpdateUser(ctx context.Context, user *models.User) (*models.User, error) {
+	_, err := r.db.ExecContext(
+		ctx,
+		updateUserQuery,
+		user.FirstName,
+		user.LastName,
+		user.Email,
+		user.Password,
+		user.Role,
+		user.ProfilePictureURL,
+		user.Phone,
+		user.City,
+		user.Gender,
+		user.Birthday,
+		user.Age,
+		user.ID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func (r *authRepository) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	_, err := r.db.ExecContext(ctx, deleteUserQuery, userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *authRepository) UpdateLastLogin(ctx context.Context, userID uuid.UUID) error {

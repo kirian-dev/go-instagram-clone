@@ -13,5 +13,8 @@ type AuthRepository interface {
 	GetByEmail(ctx context.Context, user *models.User) (*models.User, error)
 	GetByPhone(ctx context.Context, user *models.User) (*models.User, error)
 	GetUsers(ctx context.Context) ([]*models.User, error)
+	GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error)
 	UpdateLastLogin(ctx context.Context, userID uuid.UUID) error
+	UpdateUser(ctx context.Context, user *models.User) (*models.User, error)
+	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }

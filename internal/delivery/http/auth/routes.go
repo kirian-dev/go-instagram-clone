@@ -11,7 +11,11 @@ func MapAuthRoutes(authGroup *echo.Group, h http.AuthHandlers, mw *middleware.Mi
 	authGroup.POST("/register", h.Register())
 	authGroup.POST("/login", h.Login())
 	authGroup.POST("/refresh-token", h.RefreshToken())
+	authGroup.POST("/logout", h.Logout())
 
 	authGroup.Use(mw.AuthJWTMiddleware())
 	authGroup.GET("/all", h.GetUsers())
+	authGroup.GET("/:userId", h.GetUserByID())
+	authGroup.DELETE("/:userId", h.DeleteUser())
+	authGroup.PUT("/:userId", h.UpdateUser())
 }

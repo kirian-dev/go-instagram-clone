@@ -21,4 +21,5 @@ const (
 	ErrInvalidRefreshToken       = "invalid refresh token"
 	ErrRefreshTokenExpired       = "refresh token expired"
 	ErrAuthorizationHeaderNotSet = "authorization header not set"
+	ErrUserNotFound              = "user not found"
 )
