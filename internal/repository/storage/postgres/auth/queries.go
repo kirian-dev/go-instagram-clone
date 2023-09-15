@@ -23,5 +23,8 @@ const (
   )
   RETURNING *
 `
-	getByEmailQuery = `SELECT * FROM users WHERE email = $1`
+	getByEmailQuery      = `SELECT * FROM users WHERE email = $1`
+	getByPhoneQuery      = `SELECT * FROM users WHERE phone = $1`
+	getUsersQuery        = "SELECT * FROM users"
+	updateLastLoginQuery = "UPDATE users SET last_login_at = now() WHERE id = $1"
 )

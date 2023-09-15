@@ -1,21 +1,20 @@
 package models
 
 import (
-	"go-instagram-clone/pkg/e"
-	"go-instagram-clone/pkg/utils"
+	"go-instagram-clone/pkg/security"
 	"strings"
 	"time"
 
-	"github.com/go-playground/validator/v10"
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID                string    `db:"id" json:"id"`
-	FirstName         string    `db:"first_name" json:"first_name" validate:"required"`
-	LastName          string    `db:"last_name" json:"last_name" validate:"required"`
-	Email             string    `db:"email" json:"email" validate:"required,email"`
-	Password          string    `db:"password" json:"password" validate:"required,min=6"`
-	Phone             string    `db:"phone" json:"phone" validate:"omitempty"`
+	ID                uuid.UUID `db:"id" json:"id"`
+	FirstName         string    `db:"first_name" json:"first_name" validate:"required,lte=50"`
+	LastName          string    `db:"last_name" json:"last_name" validate:"required,lte=50"`
+	Email             string    `db:"email" json:"email" validate:"required,email,lte=60"`
+	Password          string    `db:"password" json:"password" validate:"required,gte=6"`
+	Phone             string    `db:"phone" json:"phone" validate:"omitempty,phone"`
 	ProfilePictureURL string    `db:"profile_picture_url" json:"profile_picture_url" validate:"omitempty,url"`
 	City              string    `db:"city" json:"city" validate:"omitempty"`
 	Gender            string    `db:"gender" json:"gender" validate:"omitempty,oneof=male female other"`
@@ -31,9 +30,12 @@ func (u *User) BeforeCreate() error {
 	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
 	u.Password = strings.TrimSpace(u.Password)
 
-	if err := utils.HashPassword(u.Password); err != nil {
+	hashedPassword, err := security.HashPassword(u.Password)
+	if err != nil {
 		return err
 	}
+
+	u.Password = hashedPassword
 
 	if u.Phone != "" {
 		u.Phone = strings.TrimSpace(u.Phone)
@@ -43,31 +45,4 @@ func (u *User) BeforeCreate() error {
 	}
 
 	return nil
-}
-
-func ValidateUser(user *User, validate *validator.Validate) []e.ValidationErrorResponse {
-	var validationErrors []e.ValidationErrorResponse
-	if err := validate.Struct(user); err != nil {
-		for _, validationErr := range err.(validator.ValidationErrors) {
-			field := validationErr.Field()
-			message := ""
-
-			// Customize error message based on the validation tag
-			switch validationErr.Tag() {
-			case "required":
-				message = "Field is required"
-			case "email":
-				message = "Invalid email format"
-			case "min":
-				message = "Field length is too short"
-			}
-
-			validationErrors = append(validationErrors, e.ValidationErrorResponse{
-				Field:   field,
-				Message: message,
-			})
-		}
-	}
-
-	return validationErrors
 }
