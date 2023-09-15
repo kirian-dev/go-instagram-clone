@@ -2,6 +2,7 @@ package server
 
 import (
 	authHttp "go-instagram-clone/internal/delivery/http/auth"
+	appMiddleware "go-instagram-clone/internal/middleware"
 	authRepo "go-instagram-clone/internal/repository/storage/postgres/auth"
 	authUseCase "go-instagram-clone/internal/useCase/auth"
 
@@ -11,13 +12,16 @@ import (
 
 func (s *Server) Handlers(e *echo.Echo) error {
 	// Init repository
-	aRepo := authRepo.New(s.db)
+	aRepo := authRepo.NewAuthRepository(s.db)
 
 	// Init usecase
-	authUC := authUseCase.New(s.cfg, aRepo, s.logger)
+	authUC := authUseCase.New(s.cfg, aRepo, s.log)
 
 	// Init delivery
-	authHandlers := authHttp.New(s.cfg, s.logger, authUC)
+	authHandlers := authHttp.New(s.cfg, s.log, authUC)
+
+	//Api Middleware
+	mw := appMiddleware.NewMiddlewareManager(s.cfg, s.log)
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins: []string{"*"},
@@ -34,7 +38,7 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	v1 := e.Group("/api/v1")
 
 	authGroup := v1.Group("/auth")
-	authHttp.MapAuthRoutes(authGroup, authHandlers)
+	authHttp.MapAuthRoutes(authGroup, authHandlers, mw)
 
 	return nil
 }

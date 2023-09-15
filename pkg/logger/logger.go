@@ -14,7 +14,7 @@ type ZapLogger struct {
 
 func InitLogger(cfg *config.Config) *ZapLogger {
 	var logLevel zapcore.Level
-	switch cfg.Server.Mode {
+	switch cfg.Mode {
 	case "debug":
 		logLevel = zap.DebugLevel
 	case "info":
@@ -28,7 +28,7 @@ func InitLogger(cfg *config.Config) *ZapLogger {
 	}
 
 	encoderCfg := zap.NewProductionEncoderConfig()
-	if cfg.Server.Mode == "development" {
+	if cfg.Mode == "development" {
 		encoderCfg = zap.NewDevelopmentEncoderConfig()
 	} else {
 		encoderCfg = zap.NewProductionEncoderConfig()

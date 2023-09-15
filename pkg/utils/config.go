@@ -1,8 +1,12 @@
 package utils
 
-func GetConfigPath(configPath string) string {
-	if configPath == "docker" {
-		return "./config/config-docker"
+import "strconv"
+
+func ParsePort(portStr string) uint16 {
+	port, err := strconv.ParseUint(portStr, 10, 16)
+	if err != nil {
+
+		return 0
 	}
-	return "./config/config-local"
+	return uint16(port)
 }

@@ -3,41 +3,30 @@ package main
 import (
 	"go-instagram-clone/config"
 	"go-instagram-clone/internal/server"
-	"go-instagram-clone/pkg/db/postgres"
+	"go-instagram-clone/pkg/db"
 	"go-instagram-clone/pkg/logger"
-	"go-instagram-clone/pkg/utils"
-
-	"log"
-	"os"
 )
 
 func main() {
-	log.Println("Starting api server")
-
-	configPath := utils.GetConfigPath(os.Getenv("config"))
-
-	cfgFile, err := config.LoadConfig(configPath)
+	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("LoadConfig: %v", err)
+		panic(err)
 	}
 
-	cfg, err := config.ParseConfig(cfgFile)
-	if err != nil {
-		log.Fatalf("ParseConfig: %v", err)
-	}
+	log := logger.InitLogger(cfg)
 
-	appLogger := logger.InitLogger(cfg)
-	appLogger.Infof("App version: %s, Mode: %s", cfg.Server.AppVersion, cfg.Server.Mode)
+	log.Info("Starting api server")
+	log.Infof("App version: %s, Mode: %s", cfg.AppVersion, cfg.Mode)
 
-	psDB, err := postgres.NewPostgresDB(cfg)
+	psDB, err := db.NewDatabaseConnection(cfg)
 	if err != nil {
-		appLogger.Fatalf("Postgres init: %s", err)
+		log.Fatalf("Postgresql init: %s", err)
 	} else {
-		appLogger.Infof("Postgres connected, Status: %#v", psDB.Stats())
+		log.Infof("Postgres connected, Status: %#v", psDB.Stats())
 	}
 	defer psDB.Close()
 
-	s := server.New(cfg, *appLogger, psDB)
+	s := server.New(cfg, log, psDB)
 	if err = s.Run(); err != nil {
 		log.Fatal(err)
 	}
