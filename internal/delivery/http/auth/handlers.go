@@ -48,13 +48,12 @@ func (h *authHandlers) Register() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
 		}
 
-		accessToken, refreshToken, err := utils.GenerateJWTTokens(createdUser.Email, createdUser.Role, h.cfg)
+		accessToken, refreshToken, err := utils.GenerateJWTTokens(createdUser.Email, createdUser.Role, createdUser.ID, h.cfg)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, e.ErrInternalServer)
 		}
 
 		res := map[string]interface{}{
-			"account":      createdUser,
 			"access_token": accessToken,
 		}
 		c.SetCookie(&http.Cookie{
@@ -99,14 +98,13 @@ func (h *authHandlers) Login() echo.HandlerFunc {
 			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
 		}
 
-		accessToken, refreshToken, err := utils.GenerateJWTTokens(existsUser.Email, existsUser.Role, h.cfg)
+		accessToken, refreshToken, err := utils.GenerateJWTTokens(existsUser.Email, existsUser.Role, existsUser.ID, h.cfg)
 
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, e.ErrInternalServer)
 		}
 
 		res := map[string]interface{}{
-			"account":      existsUser,
 			"access_token": accessToken,
 		}
 		c.SetCookie(&http.Cookie{
@@ -139,7 +137,7 @@ func (h *authHandlers) RefreshToken() echo.HandlerFunc {
 			return c.JSON(http.StatusUnauthorized, e.ErrRefreshTokenExpired)
 		}
 
-		accessToken, refreshToken, err := utils.GenerateJWTTokens(claims.Email, claims.Role, h.cfg)
+		accessToken, refreshToken, err := utils.GenerateJWTTokens(claims.Email, claims.Role, claims.UserID, h.cfg)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, e.ErrInternalServer)
 		}
@@ -191,6 +189,7 @@ func (h *authHandlers) GetUsers() echo.HandlerFunc {
 		if len(users) == 0 {
 			return c.JSON(http.StatusOK, []interface{}{})
 		}
+
 		return c.JSON(http.StatusOK, users)
 	}
 }
@@ -217,13 +216,10 @@ func (h *authHandlers) GetUserByID() echo.HandlerFunc {
 func (h *authHandlers) UpdateUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
-		userIDStr := c.Param("userId")
-
-		userID, err := uuid.Parse(userIDStr)
+		userID, err := utils.AuthorizeUser(c)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, err)
+			c.JSON(http.StatusBadRequest, err.Error())
 		}
-
 		user := &models.User{}
 
 		if err := utils.ReadRequest(c, user); err != nil {
@@ -240,20 +236,43 @@ func (h *authHandlers) UpdateUser() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, updatedUser)
 	}
 }
+
 func (h *authHandlers) DeleteUser() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		ctx := c.Request().Context()
-		userIDStr := c.Param("userId")
 
-		userID, err := uuid.Parse(userIDStr)
+		userID, err := utils.AuthorizeUser(c)
 		if err != nil {
-			return c.JSON(http.StatusBadRequest, err)
+			c.JSON(http.StatusBadRequest, err.Error())
 		}
+
 		err = h.authUC.DeleteUser(ctx, userID)
 		if err != nil {
 			h.log.Error(err)
 			return c.JSON(http.StatusNotFound, e.ErrorResponse{Error: err.Error()})
 		}
-		return nil
+
+		return c.JSON(http.StatusNoContent, nil)
+	}
+}
+
+func (h *authHandlers) GetAccount() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userClaims, ok := c.Get("userClaims").(*utils.CustomClaims)
+		if !ok {
+			h.log.Error(e.ErrUserContextNotFound)
+			return c.JSON(http.StatusUnauthorized, e.ErrorResponse{Error: e.ErrUnauthorized})
+		}
+
+		user, err := h.authUC.GetUserByID(c.Request().Context(), userClaims.UserID)
+		if err != nil {
+			h.log.Error(err)
+			return c.JSON(http.StatusNotFound, e.ErrorResponse{Error: e.ErrUserNotFound})
+		}
+
+		res := map[string]interface{}{
+			"account": user,
+		}
+		return c.JSON(http.StatusOK, res)
 	}
 }

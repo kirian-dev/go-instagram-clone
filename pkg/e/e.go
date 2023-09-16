@@ -22,4 +22,5 @@ const (
 	ErrRefreshTokenExpired       = "refresh token expired"
 	ErrAuthorizationHeaderNotSet = "authorization header not set"
 	ErrUserNotFound              = "user not found"
+	ErrUserContextNotFound       = "user context not found or not authorized to access this account yet"
 )

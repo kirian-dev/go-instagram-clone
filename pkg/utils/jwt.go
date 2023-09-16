@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
 )
 
 type Claims struct {
@@ -15,8 +16,9 @@ type Claims struct {
 	jwt.RegisteredClaims
 }
 type CustomClaims struct {
-	Email string `json:"email"`
-	Role  string `json:"role"`
+	UserID uuid.UUID `json:"id"`
+	Email  string    `json:"email"`
+	Role   string    `json:"role"`
 	jwt.RegisteredClaims
 }
 type RefreshToken struct {
@@ -26,7 +28,7 @@ type RefreshToken struct {
 	Role      string
 }
 
-func GenerateJWTTokens(email, role string, c *config.Config) (string, string, error) {
+func GenerateJWTTokens(email, role string, userID uuid.UUID, c *config.Config) (string, string, error) {
 	// Access Token
 	accessSigningKey := []byte(c.JwtSecretKey)
 	accessToken := jwt.New(jwt.SigningMethodHS256)
@@ -34,6 +36,7 @@ func GenerateJWTTokens(email, role string, c *config.Config) (string, string, er
 	accessClaims["authorized"] = true
 	accessClaims["email"] = email
 	accessClaims["role"] = role
+	accessClaims["id"] = userID
 	accessClaims["exp"] = time.Now().Add(time.Minute * 15).Unix()
 
 	accessTokenString, err := accessToken.SignedString(accessSigningKey)
@@ -47,6 +50,7 @@ func GenerateJWTTokens(email, role string, c *config.Config) (string, string, er
 	refreshClaims := refreshToken.Claims.(jwt.MapClaims)
 	refreshClaims["authorized"] = true
 	refreshClaims["email"] = email
+	refreshClaims["id"] = userID
 	refreshClaims["role"] = role
 	refreshClaims["exp"] = time.Now().Add(time.Hour * 24 * 7).Unix()
 

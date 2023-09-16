@@ -18,4 +18,5 @@ func MapAuthRoutes(authGroup *echo.Group, h http.AuthHandlers, mw *middleware.Mi
 	authGroup.GET("/:userId", h.GetUserByID())
 	authGroup.DELETE("/:userId", h.DeleteUser())
 	authGroup.PUT("/:userId", h.UpdateUser())
+	authGroup.GET("/account", h.GetAccount())
 }

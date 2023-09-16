@@ -43,12 +43,12 @@ func (r *authRepository) Register(ctx context.Context, user *models.User) (*mode
 	return &u, nil
 }
 
-func (r *authRepository) GetByEmail(ctx context.Context, user *models.User) (*models.User, error) {
-	return r.getUserByQuery(ctx, getByEmailQuery, user.Email)
+func (r *authRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	return r.getUserByQuery(ctx, getByEmailQuery, email)
 }
 
-func (r *authRepository) GetByPhone(ctx context.Context, user *models.User) (*models.User, error) {
-	return r.getUserByQuery(ctx, getByPhoneQuery, user.Phone)
+func (r *authRepository) GetByPhone(ctx context.Context, phone string) (*models.User, error) {
+	return r.getUserByQuery(ctx, getByPhoneQuery, phone)
 }
 
 func (r *authRepository) GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
