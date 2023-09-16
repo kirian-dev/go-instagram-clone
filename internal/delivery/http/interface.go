@@ -11,4 +11,9 @@ type AuthHandlers interface {
 	GetUserByID() echo.HandlerFunc
 	DeleteUser() echo.HandlerFunc
 	UpdateUser() echo.HandlerFunc
+	GetAccount() echo.HandlerFunc
+}
+
+type MessageHandlers interface {
+	CreateMessage() echo.HandlerFunc
 }

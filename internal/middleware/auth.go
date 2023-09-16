@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"context"
 	"errors"
 	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/pkg/utils"
@@ -40,10 +39,7 @@ func (mw *MiddlewareManager) AuthJWTMiddleware() echo.MiddlewareFunc {
 					mw.log.Error("validateJWTToken", zap.String("JWT", err.Error()))
 					return c.JSON(http.StatusUnauthorized, e.ErrorResponse{Error: e.ErrUnauthorized})
 				}
-
-				ctx := context.WithValue(c.Request().Context(), "claims", claims)
-				c.SetRequest(c.Request().WithContext(ctx))
-
+				c.Set("userClaims", claims)
 				return next(c)
 			}
 			return nil

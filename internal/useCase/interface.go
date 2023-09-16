@@ -15,3 +15,7 @@ type AuthUseCase interface {
 	UpdateUser(ctx context.Context, user *models.User, userID uuid.UUID) (*models.User, error)
 	DeleteUser(ctx context.Context, userID uuid.UUID) error
 }
+
+type MessagesUseCase interface {
+	CreateMessage(ctx context.Context, message *models.Message) (*models.Message, error)
+}

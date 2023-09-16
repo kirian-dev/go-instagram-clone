@@ -23,7 +23,7 @@ func New(cfg *config.Config, authRepo postgres.AuthRepository, log *logger.ZapLo
 	return &authUC{cfg: cfg, authRepo: authRepo, log: log}
 }
 func (uc *authUC) Register(ctx context.Context, user *models.User) (*models.User, error) {
-	existsUserByEmail, err := uc.authRepo.GetByEmail(ctx, user)
+	existsUserByEmail, err := uc.authRepo.GetByEmail(ctx, user.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +32,7 @@ func (uc *authUC) Register(ctx context.Context, user *models.User) (*models.User
 		return nil, errors.New(e.ErrEmailNotExists)
 	}
 
-	existsUserByPhone, err := uc.authRepo.GetByPhone(ctx, user)
+	existsUserByPhone, err := uc.authRepo.GetByPhone(ctx, user.Phone)
 	if err != nil {
 		return nil, err
 	}
@@ -60,12 +60,12 @@ func (uc *authUC) Register(ctx context.Context, user *models.User) (*models.User
 func (uc *authUC) Login(ctx context.Context, user *models.User) (*models.User, error) {
 	var foundUser *models.User
 
-	existsUserByEmail, err := uc.authRepo.GetByEmail(ctx, &models.User{Email: user.Email})
+	existsUserByEmail, err := uc.authRepo.GetByEmail(ctx, user.Email)
 	if err != nil {
 		return nil, errors.New(e.ErrInvalidCredentials)
 	}
 
-	existsUserByPhone, err := uc.authRepo.GetByPhone(ctx, &models.User{Phone: user.Phone})
+	existsUserByPhone, err := uc.authRepo.GetByPhone(ctx, user.Phone)
 	if err != nil {
 		return nil, errors.New(e.ErrInvalidCredentials)
 	}
