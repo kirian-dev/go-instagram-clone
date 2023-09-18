@@ -1,21 +1,27 @@
 package useCase
 
 import (
-	"context"
 	"go-instagram-clone/internal/domain/models"
 
 	"github.com/google/uuid"
 )
 
 type AuthUseCase interface {
-	Register(ctx context.Context, user *models.User) (*models.User, error)
-	Login(ctx context.Context, user *models.User) (*models.User, error)
-	GetUsers(ctx context.Context) ([]*models.User, error)
-	GetUserByID(ctx context.Context, userID uuid.UUID) (*models.User, error)
-	UpdateUser(ctx context.Context, user *models.User, userID uuid.UUID) (*models.User, error)
-	DeleteUser(ctx context.Context, userID uuid.UUID) error
+	Register(user *models.User) (*models.User, error)
+	Login(user *models.User) (*models.User, error)
+	GetUsers() ([]*models.User, error)
+	GetUserByID(userID uuid.UUID) (*models.User, error)
+	UpdateUser(user *models.User, userID uuid.UUID) (*models.User, error)
+	DeleteUser(userID uuid.UUID) error
 }
 
 type MessagesUseCase interface {
-	CreateMessage(ctx context.Context, message *models.Message) (*models.Message, error)
+	CreateMessage(message *models.Message) (*models.Message, error)
+}
+
+type ChatsUseCase interface {
+	CreateChat(chat *models.Chat) (*models.Chat, error)
+	ListChats() ([]*models.Chat, error)
+	DeleteChat(chatID uuid.UUID) error
+	GetChatByID(chatID uuid.UUID) (*models.Chat, error)
 }

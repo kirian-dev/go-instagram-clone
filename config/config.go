@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -18,17 +17,8 @@ type Config struct {
 	CxtDefaultTimeout string
 	Debug             string
 	JwtSecretKey      string
-	PostgresDbname    string
-	PostgresUser      string
-	PostgresPassword  string
-	PostgresPort      string
-	PostgresHost      string
-	PostgresSslMode   string
-	PgDriver          string
-	MaxOpenConns      int
-	MaxIdleConns      int
-	ConnMaxLifetime   time.Duration
-	ConnMaxIdleTime   time.Duration
+	Driver            string
+	URI               string
 }
 
 func LoadConfig() (*Config, error) {
@@ -43,45 +33,16 @@ func LoadConfig() (*Config, error) {
 		CxtDefaultTimeout: os.Getenv("CxtDefaultTimeout"),
 		Debug:             os.Getenv("Debug"),
 		JwtSecretKey:      os.Getenv("JwtSecretKey"),
-		PostgresDbname:    os.Getenv("PostgresDbname"),
-		PostgresUser:      os.Getenv("PostgresUser"),
-		PostgresPassword:  os.Getenv("PostgresPassword"),
-		PostgresPort:      os.Getenv("PostgresPort"),
-		PostgresHost:      os.Getenv("PostgresHost"),
-		PostgresSslMode:   os.Getenv("PostgresSslMode"),
-		PgDriver:          os.Getenv("PgDriver"),
+		URI:               os.Getenv("URI"),
 	}
-
-	readTimeoutStr := os.Getenv("ReadTimeout")
-	writeTimeoutStr := os.Getenv("WriteTimeout")
 
 	var err error
-	cfg.ReadTimeout, err = time.ParseDuration(readTimeoutStr)
+	cfg.ReadTimeout, err = time.ParseDuration(os.Getenv("ReadTimeout"))
 	if err != nil {
 		return nil, err
 	}
 
-	cfg.WriteTimeout, err = time.ParseDuration(writeTimeoutStr)
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.MaxOpenConns, err = strconv.Atoi(os.Getenv("MaxOpenConns"))
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.MaxIdleConns, err = strconv.Atoi(os.Getenv("MaxIdleConns"))
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.ConnMaxLifetime, err = time.ParseDuration(os.Getenv("ConnMaxLifetime"))
-	if err != nil {
-		return nil, err
-	}
-
-	cfg.ConnMaxIdleTime, err = time.ParseDuration(os.Getenv("ConnMaxIdleTime"))
+	cfg.WriteTimeout, err = time.ParseDuration(os.Getenv("WriteTimeout"))
 	if err != nil {
 		return nil, err
 	}
@@ -104,17 +65,7 @@ func validateConfig(cfg *Config) error {
 		{cfg.CxtDefaultTimeout, "CxtDefaultTimeout"},
 		{cfg.Debug, "Debug"},
 		{cfg.JwtSecretKey, "JwtSecretKey"},
-		{cfg.PostgresDbname, "PostgresDbname"},
-		{cfg.PostgresUser, "PostgresUser"},
-		{cfg.PostgresPassword, "PostgresPassword"},
-		{cfg.PostgresPort, "PostgresPort"},
-		{cfg.PostgresHost, "PostgresHost"},
-		{cfg.PostgresSslMode, "PostgresSslMode"},
-		{cfg.PgDriver, "PgDriver"},
-		{cfg.MaxOpenConns, "MaxOpenConns"},
-		{cfg.MaxIdleConns, "MaxIdleConns"},
-		{cfg.ConnMaxLifetime, "ConnMaxLifetime"},
-		{cfg.ConnMaxIdleTime, "ConnMaxIdleTime"},
+		{cfg.URI, "URI"},
 	}
 
 	for _, field := range requiredFields {

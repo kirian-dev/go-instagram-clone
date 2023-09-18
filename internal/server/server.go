@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"database/sql"
 	"go-instagram-clone/config"
 
 	"go-instagram-clone/pkg/logger"
@@ -14,6 +13,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 const (
@@ -25,10 +25,10 @@ type Server struct {
 	echo *echo.Echo
 	cfg  *config.Config
 	log  *logger.ZapLogger
-	db   *sql.DB
+	db   *gorm.DB
 }
 
-func New(cfg *config.Config, log *logger.ZapLogger, db *sql.DB) *Server {
+func New(cfg *config.Config, log *logger.ZapLogger, db *gorm.DB) *Server {
 	return &Server{echo: echo.New(), cfg: cfg, log: log, db: db}
 }
 
@@ -39,6 +39,7 @@ func (s *Server) Run() error {
 		WriteTimeout:   time.Second * s.cfg.WriteTimeout,
 		MaxHeaderBytes: maxHeaderBytes,
 	}
+
 	go func() {
 		s.log.Infof("Server is listening on PORT: %s", s.cfg.Port)
 		if err := s.echo.StartServer(server); err != nil {

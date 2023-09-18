@@ -1,7 +1,6 @@
 package messages
 
 import (
-	"context"
 	"go-instagram-clone/config"
 	"go-instagram-clone/internal/domain/models"
 	"go-instagram-clone/internal/repository/storage/postgres"
@@ -18,6 +17,6 @@ func New(cfg *config.Config, messagesRepo postgres.MessagesRepository, log *logg
 	return &messagesUC{cfg, log, messagesRepo}
 }
 
-func (r *messagesUC) CreateMessage(ctx context.Context, message *models.Message) (*models.Message, error) {
+func (r *messagesUC) CreateMessage(message *models.Message) (*models.Message, error) {
 	panic("not implemented")
 }

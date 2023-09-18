@@ -1,0 +1,284 @@
+basePath: /api/v1
+definitions:
+  e.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  models.User:
+    properties:
+      age:
+        maximum: 200
+        minimum: 0
+        type: integer
+      birthday:
+        type: string
+      city:
+        maxLength: 100
+        type: string
+      created_at:
+        type: string
+      email:
+        maxLength: 60
+        type: string
+      first_name:
+        maxLength: 50
+        type: string
+      gender:
+        enum:
+        - male
+        - female
+        - other
+        type: string
+      id:
+        type: string
+      last_login_at:
+        type: string
+      last_name:
+        maxLength: 50
+        type: string
+      password:
+        minLength: 6
+        type: string
+      phone:
+        type: string
+      profile_picture_url:
+        type: string
+      role:
+        enum:
+        - user
+        - admin
+        type: string
+      updated_at:
+        type: string
+    required:
+    - email
+    - first_name
+    - last_name
+    - password
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: polozenko.kirill.job@gmail.com
+    name: Kirill Polozenko
+    url: https://github.com/kirian-dev
+  description: This REST API for instagram clone.
+  title: GO-INSTAGRAM-CLONE
+  version: "1.0"
+paths:
+  /auth/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Get user by id
+      tags:
+      - Auth
+    put:
+      consumes:
+      - application/json
+      description: The user can update himself
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid body parameters
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Update user
+      tags:
+      - Auth
+  /auth/{userId}:
+    delete:
+      description: The user can delete himself
+      parameters:
+      - description: userId
+        in: path
+        name: userId
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Delete User
+      tags:
+      - Auth
+  /auth/account:
+    get:
+      consumes:
+      - application/json
+      description: Get the account details of the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Get user account
+      tags:
+      - Auth
+  /auth/all:
+    get:
+      consumes:
+      - application/json
+      description: Get users
+      parameters:
+      - description: user_id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Get all users
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user with their email or phone and password.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Response with access token and refresh token
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid credentials
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Login
+      tags:
+      - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout the user by clearing their refresh token.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Logout successful
+          schema:
+            type: string
+      summary: Logout
+      tags:
+      - Auth
+  /auth/refresh-token:
+    post:
+      consumes:
+      - application/json
+      description: Refresh the access token using the refresh token.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Response with access token and refresh token
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Refresh token is invalid
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Refresh access token and refresh token
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with the provided credentials, return access
+        token and refresh token.
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Response with access token and refresh token
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid body parameters
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Register
+      tags:
+      - Auth
+swagger: "2.0"

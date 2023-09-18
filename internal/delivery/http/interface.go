@@ -17,3 +17,10 @@ type AuthHandlers interface {
 type MessageHandlers interface {
 	CreateMessage() echo.HandlerFunc
 }
+
+type ChatHandlers interface {
+	CreateChat() echo.HandlerFunc
+	ListChats() echo.HandlerFunc
+	DeleteChat() echo.HandlerFunc
+	GetChatByID() echo.HandlerFunc
+}
