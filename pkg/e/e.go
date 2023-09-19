@@ -23,4 +23,6 @@ const (
 	ErrAuthorizationHeaderNotSet = "authorization header not set"
 	ErrUserNotFound              = "user not found"
 	ErrUserContextNotFound       = "user context not found or not authorized to access this account yet"
+	ErrAllowedParticipants       = "allowed number of participants 2"
+	ErrChatExists                = " chat with the same participants already exists"
 )

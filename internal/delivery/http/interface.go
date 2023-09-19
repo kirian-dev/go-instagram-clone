@@ -19,8 +19,8 @@ type MessageHandlers interface {
 }
 
 type ChatHandlers interface {
-	CreateChat() echo.HandlerFunc
-	ListChats() echo.HandlerFunc
+	CreateChatWithParticipants() echo.HandlerFunc
+	ListChatsWithParticipants() echo.HandlerFunc
 	DeleteChat() echo.HandlerFunc
 	GetChatByID() echo.HandlerFunc
 }

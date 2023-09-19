@@ -9,8 +9,10 @@ import (
 
 func MapChatRoutes(chatGroup *echo.Group, h http.ChatHandlers, mw *middleware.MiddlewareManager) {
 	chatGroup.Use(mw.AuthJWTMiddleware())
-	chatGroup.POST("/", h.CreateChat())
+	chatGroup.POST("", h.CreateChatWithParticipants())
 	chatGroup.GET("/:chatID", h.GetChatByID())
 	chatGroup.DELETE("/:chatID", h.DeleteChat())
-	chatGroup.GET("/list", h.ListChats())
+	chatGroup.GET("/list", h.ListChatsWithParticipants())
+	// chatGroup.POST("/:chatID/participants", h.AddParticipantsToChat())
+	// chatGroup.DELETE("/:chatID/participant", h.RemoveParticipantFromChat())
 }

@@ -20,8 +20,8 @@ type MessagesUseCase interface {
 }
 
 type ChatsUseCase interface {
-	CreateChat(chat *models.Chat) (*models.Chat, error)
-	ListChats() ([]*models.Chat, error)
-	DeleteChat(chatID uuid.UUID) error
-	GetChatByID(chatID uuid.UUID) (*models.Chat, error)
+	CreateChatWithParticipants(chatWithParticipants *models.ChatWithParticipants) (*models.ChatWithParticipants, error)
+	ListChatsWithParticipants(userID uuid.UUID) ([]*models.ChatWithParticipants, error)
+	DeleteChat(chatID uuid.UUID, userID uuid.UUID) error
+	GetChatByID(chatID uuid.UUID) (*models.ChatWithParticipants, error)
 }

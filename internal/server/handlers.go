@@ -7,7 +7,9 @@ import (
 
 	appMiddleware "go-instagram-clone/internal/middleware"
 	authRepo "go-instagram-clone/internal/repository/storage/postgres/auth"
+	chatParticipantsRepo "go-instagram-clone/internal/repository/storage/postgres/chatParticipants"
 	chatsRepo "go-instagram-clone/internal/repository/storage/postgres/chats"
+
 	messagesRepo "go-instagram-clone/internal/repository/storage/postgres/messages"
 	authUseCase "go-instagram-clone/internal/useCase/auth"
 	chatsUseCase "go-instagram-clone/internal/useCase/chats"
@@ -23,11 +25,12 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	aRepo := authRepo.NewAuthRepository(s.db)
 	messagesRepo := messagesRepo.NewMessagesRepository(s.db)
 	chatRepo := chatsRepo.NewChatRepository(s.db)
+	chatParticipantsRepo := chatParticipantsRepo.NewChatParticipantRepository(s.db)
 
 	// Init usecase
 	authUC := authUseCase.New(s.cfg, aRepo, s.log)
 	messagesUC := messagesUseCase.New(s.cfg, messagesRepo, s.log)
-	chatUC := chatsUseCase.New(s.cfg, chatRepo, s.log)
+	chatUC := chatsUseCase.New(s.cfg, chatRepo, chatParticipantsRepo, s.log)
 
 	// Init delivery
 	messagesHandlers := messagesHttp.New(s.cfg, s.log, messagesUC)
@@ -37,6 +40,7 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	//Api Middleware
 	mw := appMiddleware.NewMiddlewareManager(s.cfg, s.log)
 
+	//Swagger
 	e.GET("/swagger/*", echoSwagger.WrapHandler)
 
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -61,7 +65,6 @@ func (s *Server) Handlers(e *echo.Echo) error {
 
 	chatsGroup := v1.Group("/chats")
 	chatsHttp.MapChatRoutes(chatsGroup, chatsHandlers, mw)
-	//Swagger
 
 	return nil
 }

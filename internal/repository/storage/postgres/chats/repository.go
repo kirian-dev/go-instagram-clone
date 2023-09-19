@@ -16,6 +16,7 @@ func NewChatRepository(db *gorm.DB) *chatRepository {
 }
 
 func (r *chatRepository) CreateChat(chat *models.Chat) (*models.Chat, error) {
+	chat.ChatID = uuid.New()
 	if err := r.db.Create(chat).Error; err != nil {
 		return nil, err
 	}
@@ -32,14 +33,14 @@ func (r *chatRepository) ListChats() ([]*models.Chat, error) {
 
 func (r *chatRepository) GetChatByID(chatID uuid.UUID) (*models.Chat, error) {
 	var chat models.Chat
-	if err := r.db.Where("id = ?", chatID).First(&chat).Error; err != nil {
+	if err := r.db.Where("chat_id = ?", chatID).First(&chat).Error; err != nil {
 		return nil, err
 	}
 	return &chat, nil
 }
 
 func (r *chatRepository) DeleteChat(chatID uuid.UUID) error {
-	if err := r.db.Where("id = ?", chatID).Delete(&models.Chat{}).Error; err != nil {
+	if err := r.db.Where("chat_id = ?", chatID).Delete(&models.Chat{}).Error; err != nil {
 		return err
 	}
 	return nil

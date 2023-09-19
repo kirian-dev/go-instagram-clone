@@ -23,15 +23,23 @@ func New(cfg *config.Config, log *logger.ZapLogger, chatUC useCase.ChatsUseCase)
 	return &chatsHandlers{cfg, log, chatUC}
 }
 
-func (h *chatsHandlers) CreateChat() echo.HandlerFunc {
+// @Summary Create chat
+// @Description Create a private or group chat
+// @Accept json
+// @Produce json
+// @Tags Auth
+// @Success 201 {object} *models.ChatWithParticipants
+// @Failure 400 {object} e.Error
+func (h *chatsHandlers) CreateChatWithParticipants() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		chat := &models.Chat{}
-		if err := utils.ReadRequest(c, chat); err != nil {
+		chatWithParticipants := &models.ChatWithParticipants{}
+		if err := utils.ReadRequest(c, chatWithParticipants); err != nil {
 			h.log.Error(err)
 			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
 		}
 
-		createdChat, err := h.chatUC.CreateChat(chat)
+		// Create the chat with participants.
+		createdChat, err := h.chatUC.CreateChatWithParticipants(chatWithParticipants)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
 		}
@@ -39,9 +47,20 @@ func (h *chatsHandlers) CreateChat() echo.HandlerFunc {
 	}
 }
 
-func (h *chatsHandlers) ListChats() echo.HandlerFunc {
+// @Summary Get all chats
+// @Description List chats for a current user
+// @Tags Chats
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} models.ChatWithParticipants
+// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Failure 500 {object} e.ErrorResponse "Internal Server Error"
+// @Router /chats/list [get]
+func (h *chatsHandlers) ListChatsWithParticipants() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		chats, err := h.chatUC.ListChats()
+		userClaims := c.Get("userClaims").(*utils.CustomClaims)
+
+		chats, err := h.chatUC.ListChatsWithParticipants(userClaims.UserID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
 		}
@@ -49,10 +68,23 @@ func (h *chatsHandlers) ListChats() echo.HandlerFunc {
 	}
 }
 
+// @Summary Get chat
+// @Get chat
+// @Tags Chats
+// @Accept  json
+// @Produce  json
+// @Param chatID path int true "chatID"
+// @Success 200 {object} models.ChatWithParticipants
+// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Failure 500 {object} e.ErrorResponse "Internal Server Error"
+// @Router /chats/{chatID} [get]
 func (h *chatsHandlers) GetChatByID() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userIDStr := c.Param("chatID")
-		chatID, err := uuid.Parse(userIDStr)
+		chatIDStr := c.Param("chatID")
+		chatID, err := uuid.Parse(chatIDStr)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, err)
+		}
 		chat, err := h.chatUC.GetChatByID(chatID)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
@@ -62,17 +94,27 @@ func (h *chatsHandlers) GetChatByID() echo.HandlerFunc {
 	}
 }
 
+// @Summary Delete chat
+// @Description Delete chat if user is admin or member in this chat
+// @Tags Chats
+// @Param chatID path int true "chatID"
+// @Produce json
+// @Success 204 "No Content"
+// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Failure 403 {object} e.ErrorResponse "Forbidden"
+// @Router /chats/{chatID} [delete]
 func (h *chatsHandlers) DeleteChat() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		userIDStr := c.Param("chatID")
-		chatID, err := uuid.Parse(userIDStr)
+		chatDStr := c.Param("chatID")
+		userClaims := c.Get("userClaims").(*utils.CustomClaims)
+		chatID, err := uuid.Parse(chatDStr)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
 		}
 
-		if err := h.chatUC.DeleteChat(chatID); err != nil {
+		if err := h.chatUC.DeleteChat(chatID, userClaims.UserID); err != nil {
 			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
 		}
-		return c.JSON(http.StatusOK, map[string]string{"message": "Chat deleted successfully"})
+		return c.JSON(http.StatusNoContent, map[string]string{"message": "Chat deleted successfully"})
 	}
 }

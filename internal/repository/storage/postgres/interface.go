@@ -28,3 +28,12 @@ type ChatRepository interface {
 	DeleteChat(chatID uuid.UUID) error
 	GetChatByID(chatID uuid.UUID) (*models.Chat, error)
 }
+
+type ChatParticipantRepository interface {
+	CreateChatParticipant(participant *models.ChatParticipant) error
+	GetChatByParticipants([]models.ChatParticipant) (*models.Chat, error)
+	GetChatsByUserID(userID uuid.UUID) ([]*models.ChatParticipant, error)
+	GetParticipantsByChatID(chatID uuid.UUID) ([]models.ChatParticipant, error)
+	DeleteParticipantsByChatID(chatID uuid.UUID) error
+	IsParticipantInChat(chatID uuid.UUID, userID uuid.UUID) (bool, error)
+}

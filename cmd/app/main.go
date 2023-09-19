@@ -20,7 +20,6 @@ import (
 // @contact.email polozenko.kirill.job@gmail.com
 // @BasePath /api/v1
 // @host localhost:8080
-
 func main() {
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -38,7 +37,7 @@ func main() {
 	}
 	log.Info("connected to postgres database")
 
-	db.AutoMigrate(&models.User{}, &models.Message{}, &models.Chat{})
+	db.AutoMigrate(&models.User{}, &models.Message{}, &models.Chat{}, &models.ChatParticipant{})
 
 	s := server.New(cfg, log, db)
 	if err = s.Run(); err != nil {
