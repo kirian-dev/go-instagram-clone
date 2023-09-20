@@ -41,13 +41,8 @@ func (r *ChatParticipantRepository) GetChatByParticipants(participants []models.
 		Having("COUNT(DISTINCT user_id) = ?", len(participants)).
 		First(&chat)
 
-	if result.Error != nil && result.Error != gorm.ErrRecordNotFound {
+	if result.Error != nil {
 		return nil, result.Error
-	}
-
-	// If no chat was found, return nil without an error
-	if result.Error == gorm.ErrRecordNotFound {
-		return nil, nil
 	}
 
 	// Load the chat details
@@ -84,13 +79,10 @@ func (r *ChatParticipantRepository) DeleteParticipantsByChatID(chatID uuid.UUID)
 func (r *ChatParticipantRepository) IsParticipantInChat(chatID uuid.UUID, userID uuid.UUID) (bool, error) {
 	var participant models.ChatParticipant
 	result := r.db.Where("chat_id = ? AND user_id = ?", chatID, userID).First(&participant)
-	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return false, nil
-		}
-		return false, result.Error
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return false, nil
 	}
 
-	// Participant found, indicating the user is a participant
-	return true, nil
+	return result.Error == nil, result.Error
 }

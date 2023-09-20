@@ -17,8 +17,12 @@ type Config struct {
 	CxtDefaultTimeout string
 	Debug             string
 	JwtSecretKey      string
-	Driver            string
-	URI               string
+	PostgresDbname    string
+	PostgresUser      string
+	PostgresPassword  string
+	PostgresPort      string
+	PostgresHost      string
+	PostgresSslMode   string
 }
 
 func LoadConfig() (*Config, error) {
@@ -33,7 +37,12 @@ func LoadConfig() (*Config, error) {
 		CxtDefaultTimeout: os.Getenv("CxtDefaultTimeout"),
 		Debug:             os.Getenv("Debug"),
 		JwtSecretKey:      os.Getenv("JwtSecretKey"),
-		URI:               os.Getenv("URI"),
+		PostgresDbname:    os.Getenv("PostgresDbname"),
+		PostgresUser:      os.Getenv("PostgresUser"),
+		PostgresPassword:  os.Getenv("PostgresPassword"),
+		PostgresPort:      os.Getenv("PostgresPort"),
+		PostgresHost:      os.Getenv("PostgresHost"),
+		PostgresSslMode:   os.Getenv("PostgresSslMode"),
 	}
 
 	var err error
@@ -65,7 +74,12 @@ func validateConfig(cfg *Config) error {
 		{cfg.CxtDefaultTimeout, "CxtDefaultTimeout"},
 		{cfg.Debug, "Debug"},
 		{cfg.JwtSecretKey, "JwtSecretKey"},
-		{cfg.URI, "URI"},
+		{cfg.PostgresDbname, "PostgresDbname"},
+		{cfg.PostgresUser, "PostgresUser"},
+		{cfg.PostgresPassword, "PostgresPassword"},
+		{cfg.PostgresPort, "PostgresPort"},
+		{cfg.PostgresHost, "PostgresHost"},
+		{cfg.PostgresSslMode, "PostgresSslMode"},
 	}
 
 	for _, field := range requiredFields {

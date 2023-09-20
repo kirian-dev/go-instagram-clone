@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"go-instagram-clone/config"
 	"go-instagram-clone/internal/domain/models"
 	"go-instagram-clone/internal/server"
@@ -31,9 +32,12 @@ func main() {
 	log.Info("Starting api server")
 	log.Infof("App version: %s, Mode: %s", cfg.AppVersion, cfg.Mode)
 
-	db, err := gorm.Open(postgres.Open(cfg.URI), &gorm.Config{})
+	URI := fmt.Sprintf("host=%s port=%s dbname=%s sslmode=%s user=%s password=%s",
+		cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresDbname, cfg.PostgresSslMode, cfg.PostgresUser, cfg.PostgresPassword)
+	db, err := gorm.Open(postgres.Open(URI), &gorm.Config{})
 	if err != nil {
 		log.Error("error creating database, err: %v", err)
+		return
 	}
 	log.Info("connected to postgres database")
 
