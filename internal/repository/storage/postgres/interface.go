@@ -20,6 +20,10 @@ type AuthRepository interface {
 
 type MessagesRepository interface {
 	CreateMessage(message *models.Message) (*models.Message, error)
+	GetMessages(userID uuid.UUID) ([]*models.Message, error)
+	GetMessageByID(messageID uuid.UUID) (*models.Message, error)
+	DeleteMessage(messageID uuid.UUID) error
+	UpdateMessage(message *models.Message) (*models.Message, error)
 }
 
 type ChatRepository interface {
@@ -36,4 +40,6 @@ type ChatParticipantRepository interface {
 	GetParticipantsByChatID(chatID uuid.UUID) ([]models.ChatParticipant, error)
 	DeleteParticipantsByChatID(chatID uuid.UUID) error
 	IsParticipantInChat(chatID uuid.UUID, userID uuid.UUID) (bool, error)
+	IsParticipantAdmin(chatID uuid.UUID, userID uuid.UUID) (bool, error)
+	DeleteParticipantFromChat(chatID, participant uuid.UUID) error
 }

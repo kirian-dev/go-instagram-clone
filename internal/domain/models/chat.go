@@ -8,7 +8,7 @@ import (
 
 type Chat struct {
 	ChatID    uuid.UUID `json:"id" gorm:"primaryKey"`
-	ChatName  string    `json:"name" validate:"omitempty,max=50"`
+	ChatName  string    `json:"name" validate:"omitempty,max=50,unique"`
 	ChatType  ChatType  `json:"type" validate:"required"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`

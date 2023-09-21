@@ -29,7 +29,7 @@ func (s *Server) Handlers(e *echo.Echo) error {
 
 	// Init usecase
 	authUC := authUseCase.New(s.cfg, aRepo, s.log)
-	messagesUC := messagesUseCase.New(s.cfg, messagesRepo, s.log)
+	messagesUC := messagesUseCase.New(s.cfg, messagesRepo, chatParticipantsRepo, chatRepo, s.log)
 	chatUC := chatsUseCase.New(s.cfg, chatRepo, chatParticipantsRepo, s.log)
 
 	// Init delivery

@@ -41,7 +41,7 @@ func (r *ChatParticipantRepository) GetChatByParticipants(participants []models.
 		Having("COUNT(DISTINCT user_id) = ?", len(participants)).
 		First(&chat)
 
-	if result.Error != nil {
+	if result.Error != nil && result.RowsAffected == 0 {
 		return nil, result.Error
 	}
 
@@ -84,5 +84,23 @@ func (r *ChatParticipantRepository) IsParticipantInChat(chatID uuid.UUID, userID
 		return false, nil
 	}
 
-	return result.Error == nil, result.Error
+	return true, nil
+}
+
+func (r *ChatParticipantRepository) IsParticipantAdmin(chatID uuid.UUID, userID uuid.UUID) (bool, error) {
+	var participant models.ChatParticipant
+	result := r.db.Where("chat_id = ? AND user_id = ? AND role = ?", chatID, userID, models.Admin).First(&participant)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (r *ChatParticipantRepository) DeleteParticipantFromChat(chatID, participantID uuid.UUID) error {
+	if err := r.db.Where("chat_id = ? AND user_id = ?", chatID, participantID).Delete(&models.ChatParticipant{}).Error; err != nil {
+		return err
+	}
+	return nil
 }

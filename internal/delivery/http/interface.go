@@ -16,6 +16,10 @@ type AuthHandlers interface {
 
 type MessageHandlers interface {
 	CreateMessage() echo.HandlerFunc
+	ListMessages() echo.HandlerFunc
+	UpdateMessage() echo.HandlerFunc
+	ReadMessage() echo.HandlerFunc
+	DeleteMessage() echo.HandlerFunc
 }
 
 type ChatHandlers interface {
@@ -23,4 +27,6 @@ type ChatHandlers interface {
 	ListChatsWithParticipants() echo.HandlerFunc
 	DeleteChat() echo.HandlerFunc
 	GetChatByID() echo.HandlerFunc
+	AddParticipantsToChat() echo.HandlerFunc
+	RemoveParticipantFromChat() echo.HandlerFunc
 }

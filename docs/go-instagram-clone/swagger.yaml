@@ -5,6 +5,91 @@ definitions:
       error:
         type: string
     type: object
+  models.Chat:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      name:
+        maxLength: 50
+        type: string
+      type:
+        $ref: '#/definitions/models.ChatType'
+      updated_at:
+        type: string
+    required:
+    - type
+    type: object
+  models.ChatParticipant:
+    properties:
+      chat_id:
+        type: string
+      id:
+        type: string
+      joined_at:
+        type: string
+      role:
+        $ref: '#/definitions/models.ParticipantRole'
+      user_id:
+        type: string
+    required:
+    - chat_id
+    - role
+    - user_id
+    type: object
+  models.ChatType:
+    enum:
+    - private
+    - group
+    type: string
+    x-enum-varnames:
+    - PrivateChat
+    - GroupChat
+  models.ChatWithParticipants:
+    properties:
+      chat:
+        $ref: '#/definitions/models.Chat'
+      participants:
+        items:
+          $ref: '#/definitions/models.ChatParticipant'
+        type: array
+    type: object
+  models.Message:
+    properties:
+      chat_id:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      is_read:
+        type: boolean
+      receiver_id:
+        maxLength: 50
+        type: string
+      sender_id:
+        maxLength: 50
+        type: string
+      text:
+        maxLength: 512
+        type: string
+      updated_at:
+        type: string
+    required:
+    - chat_id
+    - receiver_id
+    - sender_id
+    - text
+    type: object
+  models.ParticipantRole:
+    enum:
+    - admin
+    - member
+    type: string
+    x-enum-varnames:
+    - Admin
+    - Member
   models.User:
     properties:
       age:
@@ -67,6 +152,33 @@ info:
   title: GO-INSTAGRAM-CLONE
   version: "1.0"
 paths:
+  /{chatID}/participants:
+    post:
+      description: Add participants to group chat
+      parameters:
+      - description: chatID
+        in: path
+        name: chatID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ChatParticipant'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Add Participants to group chat
+      tags:
+      - Chats
   /auth/{id}:
     get:
       consumes:
@@ -281,4 +393,209 @@ paths:
       summary: Register
       tags:
       - Auth
+  /chats/{chatID}:
+    delete:
+      description: Delete chat if user is admin or member in this chat
+      parameters:
+      - description: chatID
+        in: path
+        name: chatID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Delete chat
+      tags:
+      - Chats
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: chatID
+        in: path
+        name: chatID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ChatWithParticipants'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Get chat
+      tags:
+      - Chats
+  /chats/{chatID}/participants/{participantID}:
+    delete:
+      description: Delete participant from group chat
+      parameters:
+      - description: chatID
+        in: path
+        name: chatID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Delete participant from chat
+      tags:
+      - Chats
+  /chats/list:
+    get:
+      consumes:
+      - application/json
+      description: List chats for a current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ChatWithParticipants'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Get all chats
+      tags:
+      - Chats
+  /messages/{messageID}:
+    patch:
+      consumes:
+      - application/json
+      description: Update read at message
+      parameters:
+      - description: messageID
+        in: path
+        name: messageID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Message'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Update read message
+      tags:
+      - Messages
+    put:
+      consumes:
+      - application/json
+      description: Update message only for who created the message
+      parameters:
+      - description: messageID
+        in: path
+        name: messageID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Message'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Update message
+      tags:
+      - Messages
+  /messages/{messageID}/users/{userID}:
+    delete:
+      description: Delete message if user is created this message
+      parameters:
+      - description: chatID
+        in: path
+        name: chatID
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "403":
+          description: Forbidden
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Delete message
+      tags:
+      - Messages
+  /messages/list:
+    get:
+      consumes:
+      - application/json
+      description: List messages for a current user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Message'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/e.ErrorResponse'
+      summary: Get all messages
+      tags:
+      - Messages
 swagger: "2.0"

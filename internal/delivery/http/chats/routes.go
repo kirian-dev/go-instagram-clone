@@ -13,6 +13,6 @@ func MapChatRoutes(chatGroup *echo.Group, h http.ChatHandlers, mw *middleware.Mi
 	chatGroup.GET("/:chatID", h.GetChatByID())
 	chatGroup.DELETE("/:chatID", h.DeleteChat())
 	chatGroup.GET("/list", h.ListChatsWithParticipants())
-	// chatGroup.POST("/:chatID/participants", h.AddParticipantsToChat())
-	// chatGroup.DELETE("/:chatID/participant", h.RemoveParticipantFromChat())
+	chatGroup.POST("/:chatID/participants", h.AddParticipantsToChat())
+	chatGroup.DELETE("/:chatID/participants/:participantID", h.RemoveParticipantFromChat())
 }

@@ -17,6 +17,10 @@ type AuthUseCase interface {
 
 type MessagesUseCase interface {
 	CreateMessage(message *models.Message) (*models.Message, error)
+	ListMessages(userID uuid.UUID) ([]*models.Message, error)
+	ReadMessage(messageID uuid.UUID) (*models.Message, error)
+	DeleteMessage(messageID uuid.UUID) error
+	UpdateMessage(message *models.Message, messageID, userID uuid.UUID) (*models.Message, error)
 }
 
 type ChatsUseCase interface {
@@ -24,4 +28,6 @@ type ChatsUseCase interface {
 	ListChatsWithParticipants(userID uuid.UUID) ([]*models.ChatWithParticipants, error)
 	DeleteChat(chatID uuid.UUID, userID uuid.UUID) error
 	GetChatByID(chatID uuid.UUID) (*models.ChatWithParticipants, error)
+	AddParticipantsToChat(participants []*models.ChatParticipant, chatID uuid.UUID, userID uuid.UUID) ([]*models.ChatParticipant, error)
+	RemoveParticipantFromChat(chatID, userID, participantID uuid.UUID) error
 }

@@ -9,6 +9,7 @@ import (
 	"go-instagram-clone/pkg/logger"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type chatsUC struct {
@@ -23,14 +24,20 @@ func New(cfg *config.Config, chatRepo postgres.ChatRepository, chatParticipantsR
 }
 
 func (uc *chatsUC) CreateChatWithParticipants(chatWithParticipants *models.ChatWithParticipants) (*models.ChatWithParticipants, error) {
-	if chatWithParticipants.Chat.ChatType == models.PrivateChat && len(chatWithParticipants.Participants) != 2 {
+	privateChat := chatWithParticipants.Chat.ChatType == models.PrivateChat
+	if privateChat && len(chatWithParticipants.Participants) != 2 {
 		return nil, errors.New(e.ErrAllowedParticipants)
 	}
 
+	if privateChat && chatWithParticipants.Participants[0].UserID == chatWithParticipants.Participants[1].UserID {
+		return nil, errors.New(e.ErrUserNotCreatedByHimself)
+	}
 	existingChat, err := uc.chatParticipantsRepo.GetChatByParticipants(chatWithParticipants.Participants)
 	if err != nil {
 		uc.log.Error("Error checking for existing chat:", err)
-		return nil, err
+		if err != gorm.ErrRecordNotFound {
+			return nil, err
+		}
 	}
 
 	if existingChat != nil && existingChat.ChatType == models.PrivateChat {
@@ -108,7 +115,7 @@ func (uc *chatsUC) GetChatByID(chatID uuid.UUID) (*models.ChatWithParticipants, 
 	return chatWithParticipants, nil
 }
 
-func (uc *chatsUC) DeleteChat(chatID uuid.UUID, requestingUserID uuid.UUID) error {
+func (uc *chatsUC) DeleteChat(chatID, requestingUserID uuid.UUID) error {
 	// Get the participants of the chat
 	participants, err := uc.chatParticipantsRepo.GetParticipantsByChatID(chatID)
 	if err != nil {
@@ -136,6 +143,73 @@ func (uc *chatsUC) DeleteChat(chatID uuid.UUID, requestingUserID uuid.UUID) erro
 
 	// Delete the chat
 	err = uc.chatRepo.DeleteChat(chatID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *chatsUC) AddParticipantsToChat(participants []*models.ChatParticipant, chatID uuid.UUID, userID uuid.UUID) ([]*models.ChatParticipant, error) {
+	existingChat, err := uc.chatRepo.GetChatByID(chatID)
+	if err != nil {
+		return nil, err
+	}
+
+	if existingChat == nil || existingChat.ChatType != models.GroupChat {
+		return nil, errors.New(e.ErrChatNotFound)
+	}
+
+	isAccess, err := uc.chatParticipantsRepo.IsParticipantAdmin(chatID, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isAccess {
+		return nil, errors.New(e.ErrNoRights)
+	}
+
+	for _, participant := range participants {
+		participant.ChatID = chatID
+		err := uc.chatParticipantsRepo.CreateChatParticipant(participant)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return participants, nil
+}
+
+func (uc *chatsUC) RemoveParticipantFromChat(chatID, requestingUserID, participantID uuid.UUID) error {
+	// Get information about the chat
+	existingChat, err := uc.chatRepo.GetChatByID(chatID)
+	if err != nil {
+		return err
+	}
+
+	if existingChat == nil || existingChat.ChatType != models.GroupChat {
+		return errors.New(e.ErrChatNotFound)
+	}
+
+	isAccess, err := uc.chatParticipantsRepo.IsParticipantAdmin(chatID, requestingUserID)
+	if err != nil {
+		return err
+	}
+
+	if !isAccess {
+		return errors.New(e.ErrNoRights)
+	}
+
+	participantExists, err := uc.chatParticipantsRepo.IsParticipantInChat(chatID, participantID)
+	if err != nil {
+		return err
+	}
+
+	if !participantExists {
+		return errors.New(e.ErrParticipantNotFound)
+	}
+
+	err = uc.chatParticipantsRepo.DeleteParticipantFromChat(chatID, participantID)
 	if err != nil {
 		return err
 	}

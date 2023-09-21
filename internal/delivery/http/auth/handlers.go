@@ -86,9 +86,9 @@ func (h *authHandlers) Login() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
 		type Login struct {
-			Email    string `json:"email,omitempty" db:"email" validate:"omitempty,email,lte=60"`
-			Password string `json:"password,omitempty" db:"password" validate:"required,omitempty,gte=6"`
-			Phone    string `json:"phone,omitempty" db:"phone" validate:"omitempty,e164"`
+			Email    string `json:"email,omitempty" validate:"omitempty,email,lte=60"`
+			Password string `json:"password,omitempty" validate:"required,omitempty,gte=6"`
+			Phone    string `json:"phone,omitempty" validate:"omitempty,e164"`
 		}
 		login := &Login{}
 
