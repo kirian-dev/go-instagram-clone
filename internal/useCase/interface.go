@@ -2,6 +2,7 @@ package useCase
 
 import (
 	"go-instagram-clone/internal/domain/models"
+	"go-instagram-clone/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -17,10 +18,11 @@ type AuthUseCase interface {
 
 type MessagesUseCase interface {
 	CreateMessage(message *models.Message) (*models.Message, error)
-	ListMessages(userID uuid.UUID) ([]*models.Message, error)
+	ListMessages(userID uuid.UUID, pag *utils.PaginationQuery) ([]*models.MessageListResponse, error)
 	ReadMessage(messageID uuid.UUID) (*models.Message, error)
 	DeleteMessage(messageID uuid.UUID) error
 	UpdateMessage(message *models.Message, messageID, userID uuid.UUID) (*models.Message, error)
+	SearchByText(userID uuid.UUID, text string, pag *utils.PaginationQuery) ([]*models.MessageListResponse, error)
 }
 
 type ChatsUseCase interface {

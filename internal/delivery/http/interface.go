@@ -20,6 +20,7 @@ type MessageHandlers interface {
 	UpdateMessage() echo.HandlerFunc
 	ReadMessage() echo.HandlerFunc
 	DeleteMessage() echo.HandlerFunc
+	SearchByText() echo.HandlerFunc
 }
 
 type ChatHandlers interface {

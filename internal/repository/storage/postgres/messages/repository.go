@@ -2,6 +2,7 @@ package messages
 
 import (
 	"go-instagram-clone/internal/domain/models"
+	"go-instagram-clone/pkg/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -32,13 +33,78 @@ func (r *messagesRepository) UpdateMessage(message *models.Message) (*models.Mes
 	return message, nil
 }
 
-func (r *messagesRepository) GetMessages(userID uuid.UUID) ([]*models.Message, error) {
-	var messages []*models.Message
+func (r *messagesRepository) GetMessages(userID uuid.UUID, pag *utils.PaginationQuery) ([]*models.MessageListResponse, error) {
+	offset := pag.GetOffset()
+	limit := pag.GetLimit()
 
-	if err := r.db.Where("sender_id = ?", userID).Find(&messages).Error; err != nil {
+	var totalCount int64
+
+	if err := r.db.Model(&models.Message{}).
+		Where("sender_id = ?", userID).
+		Count(&totalCount).
+		Error; err != nil {
 		return nil, err
 	}
-	return messages, nil
+
+	var messages []*models.Message
+
+	query := r.db.Where("sender_id = ?", userID).Offset(offset).Limit(limit)
+	if err := query.Find(&messages).Error; err != nil {
+		return nil, err
+	}
+
+	response := []*models.MessageListResponse{
+		{
+			Messages:   messages,
+			TotalCount: totalCount,
+			TotalPages: utils.GetTotalPages(totalCount, pag.GetSize()),
+			Page:       pag.GetPage(),
+			Size:       pag.GetSize(),
+			HasMore:    utils.GetHasMore(pag.GetPage(), totalCount, pag.GetSize()),
+		},
+	}
+
+	return response, nil
+}
+
+func (r *messagesRepository) SearchByText(userID uuid.UUID, text string, pag *utils.PaginationQuery) ([]*models.MessageListResponse, error) {
+	offset := pag.GetOffset()
+	limit := pag.GetLimit()
+
+	var totalCount int64
+
+	// Count total messages that match the query
+	if err := r.db.Model(&models.Message{}).
+		Where("sender_id = ? AND text LIKE ?", userID, "%"+text+"%").
+		Count(&totalCount).
+		Error; err != nil {
+		return nil, err
+	}
+
+	var messages []*models.Message
+
+	if err := r.db.Model(&models.Message{}).
+		Select("sender_id, text").
+		Where("sender_id = ? AND text LIKE ?", userID, "%"+text+"%").
+		Offset(offset).
+		Limit(limit).
+		Find(&messages).
+		Error; err != nil {
+		return nil, err
+	}
+
+	response := []*models.MessageListResponse{
+		{
+			Messages:   messages,
+			TotalCount: totalCount,
+			TotalPages: utils.GetTotalPages(totalCount, pag.GetSize()),
+			Page:       pag.GetPage(),
+			Size:       pag.GetSize(),
+			HasMore:    utils.GetHasMore(pag.GetPage(), totalCount, pag.GetSize()),
+		},
+	}
+
+	return response, nil
 }
 
 func (r *messagesRepository) GetMessageByID(messageID uuid.UUID) (*models.Message, error) {

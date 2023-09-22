@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"go-instagram-clone/internal/domain/models"
+	"go-instagram-clone/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -20,10 +21,11 @@ type AuthRepository interface {
 
 type MessagesRepository interface {
 	CreateMessage(message *models.Message) (*models.Message, error)
-	GetMessages(userID uuid.UUID) ([]*models.Message, error)
+	GetMessages(userID uuid.UUID, pg *utils.PaginationQuery) ([]*models.MessageListResponse, error)
 	GetMessageByID(messageID uuid.UUID) (*models.Message, error)
 	DeleteMessage(messageID uuid.UUID) error
 	UpdateMessage(message *models.Message) (*models.Message, error)
+	SearchByText(userID uuid.UUID, text string, pag *utils.PaginationQuery) ([]*models.MessageListResponse, error)
 }
 
 type ChatRepository interface {

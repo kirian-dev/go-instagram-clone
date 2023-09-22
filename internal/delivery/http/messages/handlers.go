@@ -54,11 +54,11 @@ func (h *messagesHandlers) CreateMessage() echo.HandlerFunc {
 }
 
 // @Summary Get all messages
-// @Description List messages for a current user
+// @Description List messages for a current user with pagination
 // @Tags Messages
 // @Accept  json
 // @Produce  json
-// @Success 200 {object} models.Message
+// @Success 200 {object} models.MessageListResponse
 // @Failure 401 {object} e.ErrorResponse "Unauthorized"
 // @Failure 500 {object} e.ErrorResponse "Internal Server Error"
 // @Router /messages/list [get]
@@ -66,7 +66,39 @@ func (h *messagesHandlers) ListMessages() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userClaims := c.Get("userClaims").(*utils.CustomClaims)
 
-		messages, err := h.messagesUC.ListMessages(userClaims.UserID)
+		pag, err := utils.GetPaginationFromCtx(c)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+
+		messages, err := h.messagesUC.ListMessages(userClaims.UserID, pag)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+
+		return c.JSON(http.StatusOK, messages)
+	}
+}
+
+// @Summary Search for messages
+// @Description  search for messages
+// @Tags Messages
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} models.MessageListResponse
+// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Failure 500 {object} e.ErrorResponse "Internal Server Error"
+// @Router /messages/search [get]
+func (h *messagesHandlers) SearchByText() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userClaims := c.Get("userClaims").(*utils.CustomClaims)
+
+		pag, err := utils.GetPaginationFromCtx(c)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+
+		messages, err := h.messagesUC.SearchByText(userClaims.UserID, c.QueryParam("text"), pag)
 		if err != nil {
 			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
 		}

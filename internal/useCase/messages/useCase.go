@@ -7,6 +7,7 @@ import (
 	"go-instagram-clone/internal/repository/storage/postgres"
 	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/pkg/logger"
+	"go-instagram-clone/pkg/utils"
 	"time"
 
 	"github.com/google/uuid"
@@ -42,7 +43,8 @@ func (r *messagesUC) CreateMessage(message *models.Message) (*models.Message, er
 	if err != nil {
 		return nil, err
 	}
-	if isExistsSender == false {
+
+	if !isExistsSender {
 		return nil, errors.New(e.ErrParticipantNotFound)
 	}
 
@@ -51,7 +53,7 @@ func (r *messagesUC) CreateMessage(message *models.Message) (*models.Message, er
 		return nil, err
 	}
 
-	if isExistsReceiver == false {
+	if !isExistsReceiver {
 		return nil, errors.New(e.ErrParticipantNotFound)
 	}
 
@@ -63,8 +65,17 @@ func (r *messagesUC) CreateMessage(message *models.Message) (*models.Message, er
 	return createdMessage, nil
 }
 
-func (r *messagesUC) ListMessages(userID uuid.UUID) ([]*models.Message, error) {
-	messages, err := r.messagesRepo.GetMessages(userID)
+func (r *messagesUC) ListMessages(userID uuid.UUID, pag *utils.PaginationQuery) ([]*models.MessageListResponse, error) {
+	messages, err := r.messagesRepo.GetMessages(userID, pag)
+	if err != nil {
+		return nil, err
+	}
+
+	return messages, nil
+}
+
+func (r *messagesUC) SearchByText(userID uuid.UUID, text string, pag *utils.PaginationQuery) ([]*models.MessageListResponse, error) {
+	messages, err := r.messagesRepo.SearchByText(userID, text, pag)
 	if err != nil {
 		return nil, err
 	}

@@ -16,3 +16,12 @@ type Message struct {
 	UpdatedAt  time.Time `json:"updated_at"`
 	ReadAt     bool      `json:"is_read"`
 }
+
+type MessageListResponse struct {
+	Messages   []*Message `json:"messages"`
+	TotalCount int64      `json:"totalCount"`
+	TotalPages int        `json:"totalPages"`
+	Page       int        `json:"page"`
+	Size       int        `json:"size"`
+	HasMore    bool       `json:"hasMore"`
+}
