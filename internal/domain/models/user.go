@@ -9,24 +9,24 @@ import (
 )
 
 type User struct {
-	ID                uuid.UUID `db:"id" json:"id"`
-	FirstName         string    `db:"first_name" json:"first_name" validate:"required,lte=50"`
-	LastName          string    `db:"last_name" json:"last_name" validate:"required,lte=50"`
-	Email             string    `db:"email" json:"email" validate:"required,email,lte=60"`
-	Password          string    `db:"password" json:"password" validate:"required,gte=6"`
-	Phone             string    `db:"phone" json:"phone" validate:"omitempty,e164"`
-	ProfilePictureURL string    `db:"profile_picture_url" json:"profile_picture_url" validate:"omitempty,url"`
-	City              string    `db:"city" json:"city" validate:"omitempty,lte=100"`
-	Gender            string    `db:"gender" json:"gender" validate:"omitempty,oneof=male female other"`
-	Birthday          string    `db:"birthday" json:"birthday" validate:"omitempty"`
-	Age               int       `db:"age" json:"age" validate:"omitempty,gte=0,max=200"`
-	CreatedAt         time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt         time.Time `db:"updated_at" json:"updated_at"`
-	Role              string    `db:"role" json:"role" validate:"omitempty,oneof=user admin"`
-	LastLoginAt       time.Time `db:"last_login_at" json:"last_login_at"`
+	ID                uuid.UUID `json:"id" gorm:"primaryKey"`
+	FirstName         string    `json:"first_name" validate:"required,lte=50"`
+	LastName          string    `json:"last_name" validate:"required,lte=50"`
+	Email             string    `json:"email" validate:"required,email,lte=60"`
+	Password          string    `json:"password" validate:"required,gte=6"`
+	Phone             string    `json:"phone" validate:"omitempty,e164"`
+	ProfilePictureURL string    `json:"profile_picture_url" validate:"omitempty,url"`
+	City              string    `json:"city" validate:"omitempty,lte=100"`
+	Gender            string    `json:"gender" validate:"omitempty,oneof=male female other"`
+	Birthday          string    `json:"birthday" validate:"omitempty"`
+	Age               int       `json:"age" validate:"omitempty,gte=0,max=200"`
+	CreatedAt         time.Time `json:"created_at"`
+	UpdatedAt         time.Time `json:"updated_at"`
+	Role              string    `json:"role" validate:"omitempty,oneof=user admin"`
+	LastLoginAt       time.Time `json:"last_login_at"`
 }
 
-func (u *User) BeforeCreate() error {
+func BeforeCreate(u *User) error {
 	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
 	u.Password = strings.TrimSpace(u.Password)
 

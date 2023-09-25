@@ -1,24 +1,47 @@
 package postgres
 
 import (
-	"context"
 	"go-instagram-clone/internal/domain/models"
+	"go-instagram-clone/pkg/utils"
 
 	"github.com/google/uuid"
 )
 
 type AuthRepository interface {
-	Register(ctx context.Context, user *models.User) (*models.User, error)
+	Register(user *models.User) (*models.User, error)
 
-	GetByEmail(ctx context.Context, email string) (*models.User, error)
-	GetByPhone(ctx context.Context, phone string) (*models.User, error)
-	GetUsers(ctx context.Context) ([]*models.User, error)
-	GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error)
-	UpdateLastLogin(ctx context.Context, userID uuid.UUID) error
-	UpdateUser(ctx context.Context, user *models.User) (*models.User, error)
-	DeleteUser(ctx context.Context, userID uuid.UUID) error
+	GetByEmail(email string) (*models.User, error)
+	GetByPhone(phone string) (*models.User, error)
+	GetUsers() ([]*models.User, error)
+	GetByID(userID uuid.UUID) (*models.User, error)
+	UpdateLastLogin(userID uuid.UUID) error
+	UpdateUser(user *models.User) (*models.User, error)
+	DeleteUser(userID uuid.UUID) error
 }
 
 type MessagesRepository interface {
-	CreateMessage(ctx context.Context, message *models.Message) (*models.Message, error)
+	CreateMessage(message *models.Message) (*models.Message, error)
+	GetMessages(userID uuid.UUID, pg *utils.PaginationQuery) ([]*models.MessageListResponse, error)
+	GetMessageByID(messageID uuid.UUID) (*models.Message, error)
+	DeleteMessage(messageID uuid.UUID) error
+	UpdateMessage(message *models.Message) (*models.Message, error)
+	SearchByText(userID uuid.UUID, text string, pag *utils.PaginationQuery) ([]*models.MessageListResponse, error)
+}
+
+type ChatRepository interface {
+	CreateChat(chat *models.Chat) (*models.Chat, error)
+	ListChats() ([]*models.Chat, error)
+	DeleteChat(chatID uuid.UUID) error
+	GetChatByID(chatID uuid.UUID) (*models.Chat, error)
+}
+
+type ChatParticipantRepository interface {
+	CreateChatParticipant(participant *models.ChatParticipant) error
+	GetChatByParticipants([]models.ChatParticipant) (*models.Chat, error)
+	GetChatsByUserID(userID uuid.UUID) ([]*models.ChatParticipant, error)
+	GetParticipantsByChatID(chatID uuid.UUID) ([]models.ChatParticipant, error)
+	DeleteParticipantsByChatID(chatID uuid.UUID) error
+	IsParticipantInChat(chatID uuid.UUID, userID uuid.UUID) (bool, error)
+	IsParticipantAdmin(chatID uuid.UUID, userID uuid.UUID) (bool, error)
+	DeleteParticipantFromChat(chatID, participant uuid.UUID) error
 }

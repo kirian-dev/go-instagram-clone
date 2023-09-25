@@ -1,157 +1,94 @@
 package auth
 
 import (
-	"context"
-	"database/sql"
 	"go-instagram-clone/internal/domain/models"
 	"go-instagram-clone/pkg/security"
+	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type authRepository struct {
-	db *sql.DB
+	db *gorm.DB
 }
 
-func NewAuthRepository(db *sql.DB) *authRepository {
+func NewAuthRepository(db *gorm.DB) *authRepository {
 	return &authRepository{db: db}
 }
 
-func (r *authRepository) Register(ctx context.Context, user *models.User) (*models.User, error) {
-	var u models.User
-	if err := r.db.QueryRowContext(ctx, createUserQuery, &user.FirstName, &user.LastName, &user.Email,
-		&user.Password, &user.Role, &user.ProfilePictureURL, &user.Phone, &user.City,
-		&user.Gender, &user.Birthday, &user.Age).Scan(
-		&u.ID,
-		&u.FirstName,
-		&u.LastName,
-		&u.Email,
-		&u.Password,
-		&u.Phone,
-		&u.ProfilePictureURL,
-		&u.City,
-		&u.Birthday,
-		&u.Age,
-		&u.Gender,
-		&u.CreatedAt,
-		&u.UpdatedAt,
-		&u.LastLoginAt,
-		&u.Role); err != nil {
-		return nil, err
-	}
-
-	return &u, nil
-}
-
-func (r *authRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
-	return r.getUserByQuery(ctx, getByEmailQuery, email)
-}
-
-func (r *authRepository) GetByPhone(ctx context.Context, phone string) (*models.User, error) {
-	return r.getUserByQuery(ctx, getByPhoneQuery, phone)
-}
-
-func (r *authRepository) GetByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
-	return r.getUserByQuery(ctx, getByIDQuery, userID)
-}
-
-func (r *authRepository) GetUsers(ctx context.Context) ([]*models.User, error) {
-	rows, err := r.db.QueryContext(ctx, getUsersQuery)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var users []*models.User
-	for rows.Next() {
-		user, err := r.scanUser(rows)
-		if err != nil {
-			return nil, err
-		}
-		security.DeletePassword(&user.Password)
-		users = append(users, user)
-	}
-
-	return users, nil
-}
-
-func (r *authRepository) UpdateUser(ctx context.Context, user *models.User) (*models.User, error) {
-	_, err := r.db.ExecContext(
-		ctx,
-		updateUserQuery,
-		user.FirstName,
-		user.LastName,
-		user.Email,
-		user.Password,
-		user.Role,
-		user.ProfilePictureURL,
-		user.Phone,
-		user.City,
-		user.Gender,
-		user.Birthday,
-		user.Age,
-		user.ID,
-	)
-	if err != nil {
+func (r *authRepository) Register(user *models.User) (*models.User, error) {
+	// Generate a new UUID for the ID field
+	user.ID = uuid.New()
+	user.LastLoginAt = time.Now()
+	if err := r.db.Create(&user).Error; err != nil {
 		return nil, err
 	}
 
 	return user, nil
 }
 
-func (r *authRepository) DeleteUser(ctx context.Context, userID uuid.UUID) error {
-	_, err := r.db.ExecContext(ctx, deleteUserQuery, userID)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *authRepository) UpdateLastLogin(ctx context.Context, userID uuid.UUID) error {
-	_, err := r.db.ExecContext(ctx, updateLastLoginQuery, userID)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (r *authRepository) scanUser(rows *sql.Rows) (*models.User, error) {
+func (r *authRepository) GetByEmail(email string) (*models.User, error) {
 	var user models.User
-
-	if err := rows.Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Email,
-		&user.Password,
-		&user.Phone,
-		&user.ProfilePictureURL,
-		&user.City,
-		&user.Birthday,
-		&user.Age,
-		&user.Gender,
-		&user.CreatedAt,
-		&user.UpdatedAt,
-		&user.LastLoginAt,
-		&user.Role,
-	); err != nil {
+	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
-
 	return &user, nil
 }
 
-func (r *authRepository) getUserByQuery(ctx context.Context, query string, args ...interface{}) (*models.User, error) {
-	rows, err := r.db.QueryContext(ctx, query, args...)
-	if err != nil {
+func (r *authRepository) GetByPhone(phone string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Where("phone = ?", phone).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
 		return nil, err
 	}
-	defer rows.Close()
+	return &user, nil
+}
 
-	if !rows.Next() {
-		return nil, nil
+func (r *authRepository) GetByID(userID uuid.UUID) (*models.User, error) {
+	var user models.User
+	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
 	}
+	return &user, nil
+}
 
-	return r.scanUser(rows)
+func (r *authRepository) GetUsers() ([]*models.User, error) {
+	var users []*models.User
+	if err := r.db.Find(&users).Error; err != nil {
+		return nil, err
+	}
+	for _, user := range users {
+		security.DeletePassword(&user.Password)
+	}
+	return users, nil
+}
+
+func (r *authRepository) UpdateUser(user *models.User) (*models.User, error) {
+	if err := r.db.Save(user).Error; err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (r *authRepository) DeleteUser(userID uuid.UUID) error {
+	if err := r.db.Delete(&models.User{}, userID).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *authRepository) UpdateLastLogin(userID uuid.UUID) error {
+	if err := r.db.Model(&models.User{}).Where("id = ?", userID).Update("last_login_at", gorm.Expr("NOW()")).Error; err != nil {
+		return err
+	}
+	return nil
 }
