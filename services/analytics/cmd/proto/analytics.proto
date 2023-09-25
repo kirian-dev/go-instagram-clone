@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package analytics;
+
+import "google/protobuf/empty.proto"; 
+
+option go_package = "go-instagram-clone/services/analytics/proto";
+
+message LoginRequest {
+  int32 successful_logins = 1;
+}
+
+service AnalyticsService {
+  rpc RecordLogin(LoginRequest) returns (google.protobuf.Empty); 
+}

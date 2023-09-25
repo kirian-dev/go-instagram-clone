@@ -10,7 +10,8 @@ import (
 
 type Config struct {
 	AppVersion        string
-	Port              string
+	ChatPort          string
+	AnalyticsPort     string
 	Mode              string
 	ReadTimeout       time.Duration
 	WriteTimeout      time.Duration
@@ -32,7 +33,8 @@ func LoadConfig() (*Config, error) {
 
 	cfg := &Config{
 		AppVersion:        os.Getenv("AppVersion"),
-		Port:              os.Getenv("Port"),
+		ChatPort:          os.Getenv("ChatPort"),
+		AnalyticsPort:     os.Getenv("AnalyticsPort"),
 		Mode:              os.Getenv("Mode"),
 		CxtDefaultTimeout: os.Getenv("CxtDefaultTimeout"),
 		Debug:             os.Getenv("Debug"),
@@ -69,7 +71,8 @@ func validateConfig(cfg *Config) error {
 		name  string
 	}{
 		{cfg.AppVersion, "AppVersion"},
-		{cfg.Port, "Port"},
+		{cfg.ChatPort, "ChatPort"},
+		{cfg.AnalyticsPort, "AnalyticsPort"},
 		{cfg.Mode, "Mode"},
 		{cfg.CxtDefaultTimeout, "CxtDefaultTimeout"},
 		{cfg.Debug, "Debug"},
