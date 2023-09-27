@@ -46,3 +46,21 @@ func (mw *MiddlewareManager) AuthJWTMiddleware() echo.MiddlewareFunc {
 		}
 	}
 }
+
+func (mw *MiddlewareManager) AdminAuthMiddleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			userClaims, ok := c.Get("userClaims").(*utils.CustomClaims)
+			if !ok {
+				return c.JSON(http.StatusUnauthorized, e.ErrorResponse{Error: e.ErrUnauthorized})
+			}
+
+			// Check if the user has the admin role
+			if userClaims.Role != "admin" {
+				return c.JSON(http.StatusForbidden, e.ErrorResponse{Error: e.ErrForbidden})
+			}
+
+			return next(c)
+		}
+	}
+}

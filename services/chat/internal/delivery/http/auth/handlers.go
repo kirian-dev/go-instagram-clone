@@ -14,6 +14,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 type authHandlers struct {
@@ -73,6 +74,17 @@ func (h *authHandlers) Register() echo.HandlerFunc {
 			Secure:   true,
 			Path:     "/",
 		})
+
+		req := &pb.NewUserRequest{
+			SuccessfulRegister: 1,
+		}
+
+		_, err = h.analyticsClient.RecordNewUser(context.Background(), req)
+		if err != nil {
+			h.log.Error(err)
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to record register in analytics service"})
+		}
+
 		return c.JSON(http.StatusCreated, res)
 	}
 }
@@ -363,5 +375,52 @@ func (h *authHandlers) GetAccount() echo.HandlerFunc {
 			"account": user,
 		}
 		return c.JSON(http.StatusOK, res)
+	}
+}
+
+// @Summary Get registers count
+// @Description Get count all registered users
+// @Accept json
+// @Produce json
+// @Tags Auth
+// @Success 200  {int}
+// @Failure 403 {object} e.ErrorResponse "Forbidden"
+// @Router /auth/analytics/registers [get]
+func (h *authHandlers) GetRegistersCount() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		emptyReq := &emptypb.Empty{}
+
+		registers, err := h.analyticsClient.GetQuantityRegister(context.Background(), emptyReq)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err)
+		}
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"registers": registers,
+		})
+
+	}
+}
+
+// @Summary Get logins count
+// @Description Get count all logins
+// @Accept json
+// @Produce json
+// @Tags Auth
+// @Success 200  {int}
+// @Failure 403 {object} e.ErrorResponse "Forbidden"
+// @Router /auth/analytics/logins [get]
+func (h *authHandlers) GetLoginsCount() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		emptyReq := &emptypb.Empty{}
+
+		logins, err := h.analyticsClient.GetQuantityLogins(context.Background(), emptyReq)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err)
+		}
+
+		return c.JSON(http.StatusOK, map[string]interface{}{
+			"logins": logins.Quantity,
+		})
 	}
 }

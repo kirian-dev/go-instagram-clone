@@ -24,6 +24,11 @@ type Config struct {
 	PostgresPort      string
 	PostgresHost      string
 	PostgresSslMode   string
+	MySQLUser         string
+	MySQLPassword     string
+	MySQLHost         string
+	MySQLPort         string
+	MySQLDBName       string
 }
 
 func LoadConfig() (*Config, error) {
@@ -45,6 +50,11 @@ func LoadConfig() (*Config, error) {
 		PostgresPort:      os.Getenv("PostgresPort"),
 		PostgresHost:      os.Getenv("PostgresHost"),
 		PostgresSslMode:   os.Getenv("PostgresSslMode"),
+		MySQLUser:         os.Getenv("MySQLUser"),
+		MySQLPassword:     os.Getenv("MySQLPassword"),
+		MySQLHost:         os.Getenv("MySQLHost"),
+		MySQLPort:         os.Getenv("MySQLPort"),
+		MySQLDBName:       os.Getenv("MySQLDBName"),
 	}
 
 	var err error
@@ -83,6 +93,11 @@ func validateConfig(cfg *Config) error {
 		{cfg.PostgresPort, "PostgresPort"},
 		{cfg.PostgresHost, "PostgresHost"},
 		{cfg.PostgresSslMode, "PostgresSslMode"},
+		{cfg.MySQLDBName, "MySQLDBName"},
+		{cfg.MySQLUser, "MySQLUser"},
+		{cfg.MySQLPassword, "MySQLPassword"},
+		{cfg.MySQLPort, "MySQLPort"},
+		{cfg.MySQLHost, "MySQLHost"},
 	}
 
 	for _, field := range requiredFields {
