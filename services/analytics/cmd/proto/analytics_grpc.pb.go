@@ -24,6 +24,9 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AnalyticsServiceClient interface {
 	RecordLogin(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	RecordNewUser(ctx context.Context, in *NewUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
+	GetQuantityLogins(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*QuantityResponse, error)
+	GetQuantityRegister(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*QuantityResponse, error)
 }
 
 type analyticsServiceClient struct {
@@ -43,11 +46,41 @@ func (c *analyticsServiceClient) RecordLogin(ctx context.Context, in *LoginReque
 	return out, nil
 }
 
+func (c *analyticsServiceClient) RecordNewUser(ctx context.Context, in *NewUserRequest, opts ...grpc.CallOption) (*emptypb.Empty, error) {
+	out := new(emptypb.Empty)
+	err := c.cc.Invoke(ctx, "/analytics.AnalyticsService/RecordNewUser", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *analyticsServiceClient) GetQuantityLogins(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*QuantityResponse, error) {
+	out := new(QuantityResponse)
+	err := c.cc.Invoke(ctx, "/analytics.AnalyticsService/GetQuantityLogins", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *analyticsServiceClient) GetQuantityRegister(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*QuantityResponse, error) {
+	out := new(QuantityResponse)
+	err := c.cc.Invoke(ctx, "/analytics.AnalyticsService/GetQuantityRegister", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // AnalyticsServiceServer is the server API for AnalyticsService service.
 // All implementations must embed UnimplementedAnalyticsServiceServer
 // for forward compatibility
 type AnalyticsServiceServer interface {
 	RecordLogin(context.Context, *LoginRequest) (*emptypb.Empty, error)
+	RecordNewUser(context.Context, *NewUserRequest) (*emptypb.Empty, error)
+	GetQuantityLogins(context.Context, *emptypb.Empty) (*QuantityResponse, error)
+	GetQuantityRegister(context.Context, *emptypb.Empty) (*QuantityResponse, error)
 	mustEmbedUnimplementedAnalyticsServiceServer()
 }
 
@@ -57,6 +90,15 @@ type UnimplementedAnalyticsServiceServer struct {
 
 func (UnimplementedAnalyticsServiceServer) RecordLogin(context.Context, *LoginRequest) (*emptypb.Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RecordLogin not implemented")
+}
+func (UnimplementedAnalyticsServiceServer) RecordNewUser(context.Context, *NewUserRequest) (*emptypb.Empty, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RecordNewUser not implemented")
+}
+func (UnimplementedAnalyticsServiceServer) GetQuantityLogins(context.Context, *emptypb.Empty) (*QuantityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetQuantityLogins not implemented")
+}
+func (UnimplementedAnalyticsServiceServer) GetQuantityRegister(context.Context, *emptypb.Empty) (*QuantityResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetQuantityRegister not implemented")
 }
 func (UnimplementedAnalyticsServiceServer) mustEmbedUnimplementedAnalyticsServiceServer() {}
 
@@ -89,6 +131,60 @@ func _AnalyticsService_RecordLogin_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _AnalyticsService_RecordNewUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NewUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyticsServiceServer).RecordNewUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/analytics.AnalyticsService/RecordNewUser",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyticsServiceServer).RecordNewUser(ctx, req.(*NewUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AnalyticsService_GetQuantityLogins_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyticsServiceServer).GetQuantityLogins(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/analytics.AnalyticsService/GetQuantityLogins",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyticsServiceServer).GetQuantityLogins(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _AnalyticsService_GetQuantityRegister_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(emptypb.Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(AnalyticsServiceServer).GetQuantityRegister(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/analytics.AnalyticsService/GetQuantityRegister",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(AnalyticsServiceServer).GetQuantityRegister(ctx, req.(*emptypb.Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // AnalyticsService_ServiceDesc is the grpc.ServiceDesc for AnalyticsService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -99,6 +195,18 @@ var AnalyticsService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RecordLogin",
 			Handler:    _AnalyticsService_RecordLogin_Handler,
+		},
+		{
+			MethodName: "RecordNewUser",
+			Handler:    _AnalyticsService_RecordNewUser_Handler,
+		},
+		{
+			MethodName: "GetQuantityLogins",
+			Handler:    _AnalyticsService_GetQuantityLogins_Handler,
+		},
+		{
+			MethodName: "GetQuantityRegister",
+			Handler:    _AnalyticsService_GetQuantityRegister_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

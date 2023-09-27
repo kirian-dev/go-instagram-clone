@@ -10,6 +10,17 @@ message LoginRequest {
   int32 successful_logins = 1;
 }
 
+message NewUserRequest {
+  int32 successful_register = 1;
+}
+
+message QuantityResponse {
+  int32 quantity = 1;
+}
+
 service AnalyticsService {
-  rpc RecordLogin(LoginRequest) returns (google.protobuf.Empty); 
+  rpc RecordLogin(LoginRequest) returns (google.protobuf.Empty);
+  rpc RecordNewUser(NewUserRequest) returns (google.protobuf.Empty);
+  rpc GetQuantityLogins(google.protobuf.Empty) returns (QuantityResponse);
+  rpc GetQuantityRegister(google.protobuf.Empty) returns (QuantityResponse);
 }
