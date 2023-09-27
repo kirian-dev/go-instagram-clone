@@ -28,9 +28,9 @@ func main() {
 
 	client := analytics.NewAnalyticsServiceClient(conn)
 
-	// Пример вызова метода RecordLogin
 	loginReq := &analytics.LoginRequest{
-		SuccessfulLogins: 1,
+		Email: "user@example.com",
+		Phone: "1234567890",
 	}
 
 	_, err = client.RecordLogin(context.Background(), loginReq)
@@ -40,9 +40,9 @@ func main() {
 		log.Info("Login recorded successfully.")
 	}
 
-	// Пример вызова метода RecordNewUser
 	newUserReq := &analytics.NewUserRequest{
-		SuccessfulRegister: 1,
+		Email: "newuser@example.com",
+		Phone: "9876543210",
 	}
 
 	_, err = client.RecordNewUser(context.Background(), newUserReq)

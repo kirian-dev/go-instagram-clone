@@ -7,11 +7,13 @@ import "google/protobuf/empty.proto";
 option go_package = "go-instagram-clone/services/analytics/proto";
 
 message LoginRequest {
-  int32 successful_logins = 1;
-}
+  string email = 1;
+  string phone = 2;
+} 
 
 message NewUserRequest {
-  int32 successful_register = 1;
+  string email = 1;
+  string phone = 2;
 }
 
 message QuantityResponse {

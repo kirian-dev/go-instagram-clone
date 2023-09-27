@@ -9,26 +9,27 @@ import (
 )
 
 type Config struct {
-	AppVersion        string
-	ChatPort          string
-	AnalyticsPort     string
-	Mode              string
-	ReadTimeout       time.Duration
-	WriteTimeout      time.Duration
-	CxtDefaultTimeout string
-	Debug             string
-	JwtSecretKey      string
-	PostgresDbname    string
-	PostgresUser      string
-	PostgresPassword  string
-	PostgresPort      string
-	PostgresHost      string
-	PostgresSslMode   string
-	MySQLUser         string
-	MySQLPassword     string
-	MySQLHost         string
-	MySQLPort         string
-	MySQLDBName       string
+	AppVersion                string
+	ChatPort                  string
+	AnalyticsPort             string
+	Mode                      string
+	ReadTimeout               time.Duration
+	WriteTimeout              time.Duration
+	CxtDefaultTimeout         string
+	Debug                     string
+	JwtSecretKey              string
+	PostgresDbname            string
+	PostgresUser              string
+	PostgresPassword          string
+	PostgresPort              string
+	PostgresHost              string
+	PostgresSslMode           string
+	AnalyticsPostgresUser     string
+	AnalyticsPostgresPassword string
+	AnalyticsPostgresHost     string
+	AnalyticsPostgresPort     string
+	AnalyticsPostgresDBName   string
+	AnalyticsPostgresSslMode  string
 }
 
 func LoadConfig() (*Config, error) {
@@ -37,24 +38,25 @@ func LoadConfig() (*Config, error) {
 	}
 
 	cfg := &Config{
-		AppVersion:        os.Getenv("AppVersion"),
-		ChatPort:          os.Getenv("ChatPort"),
-		AnalyticsPort:     os.Getenv("AnalyticsPort"),
-		Mode:              os.Getenv("Mode"),
-		CxtDefaultTimeout: os.Getenv("CxtDefaultTimeout"),
-		Debug:             os.Getenv("Debug"),
-		JwtSecretKey:      os.Getenv("JwtSecretKey"),
-		PostgresDbname:    os.Getenv("PostgresDbname"),
-		PostgresUser:      os.Getenv("PostgresUser"),
-		PostgresPassword:  os.Getenv("PostgresPassword"),
-		PostgresPort:      os.Getenv("PostgresPort"),
-		PostgresHost:      os.Getenv("PostgresHost"),
-		PostgresSslMode:   os.Getenv("PostgresSslMode"),
-		MySQLUser:         os.Getenv("MySQLUser"),
-		MySQLPassword:     os.Getenv("MySQLPassword"),
-		MySQLHost:         os.Getenv("MySQLHost"),
-		MySQLPort:         os.Getenv("MySQLPort"),
-		MySQLDBName:       os.Getenv("MySQLDBName"),
+		AppVersion:                os.Getenv("AppVersion"),
+		ChatPort:                  os.Getenv("ChatPort"),
+		AnalyticsPort:             os.Getenv("AnalyticsPort"),
+		Mode:                      os.Getenv("Mode"),
+		CxtDefaultTimeout:         os.Getenv("CxtDefaultTimeout"),
+		Debug:                     os.Getenv("Debug"),
+		JwtSecretKey:              os.Getenv("JwtSecretKey"),
+		PostgresDbname:            os.Getenv("PostgresDbname"),
+		PostgresUser:              os.Getenv("PostgresUser"),
+		PostgresPassword:          os.Getenv("PostgresPassword"),
+		PostgresPort:              os.Getenv("PostgresPort"),
+		PostgresHost:              os.Getenv("PostgresHost"),
+		PostgresSslMode:           os.Getenv("PostgresSslMode"),
+		AnalyticsPostgresUser:     os.Getenv("AnalyticsPostgresUser"),
+		AnalyticsPostgresPassword: os.Getenv("AnalyticsPostgresPassword"),
+		AnalyticsPostgresHost:     os.Getenv("AnalyticsPostgresHost"),
+		AnalyticsPostgresPort:     os.Getenv("AnalyticsPostgresPort"),
+		AnalyticsPostgresDBName:   os.Getenv("AnalyticsPostgresDBName"),
+		AnalyticsPostgresSslMode:  os.Getenv("AnalyticsPostgresSslMode"),
 	}
 
 	var err error
@@ -93,11 +95,12 @@ func validateConfig(cfg *Config) error {
 		{cfg.PostgresPort, "PostgresPort"},
 		{cfg.PostgresHost, "PostgresHost"},
 		{cfg.PostgresSslMode, "PostgresSslMode"},
-		{cfg.MySQLDBName, "MySQLDBName"},
-		{cfg.MySQLUser, "MySQLUser"},
-		{cfg.MySQLPassword, "MySQLPassword"},
-		{cfg.MySQLPort, "MySQLPort"},
-		{cfg.MySQLHost, "MySQLHost"},
+		{cfg.AnalyticsPostgresDBName, "AnalyticsPostgresDBName"},
+		{cfg.AnalyticsPostgresUser, "AnalyticsPostgresUser"},
+		{cfg.AnalyticsPostgresPassword, "AnalyticsPostgresPassword"},
+		{cfg.AnalyticsPostgresPort, "AnalyticsPostgresPort"},
+		{cfg.AnalyticsPostgresHost, "AnalyticsPostgresHost"},
+		{cfg.AnalyticsPostgresSslMode, "AnalyticsPostgresSslMode"},
 	}
 
 	for _, field := range requiredFields {

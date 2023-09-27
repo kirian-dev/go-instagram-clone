@@ -3,12 +3,12 @@ package useCase
 import (
 	"go-instagram-clone/config"
 	"go-instagram-clone/pkg/logger"
-	"go-instagram-clone/services/analytics/internal/analytics/repository/storage/mysql"
+	"go-instagram-clone/services/analytics/internal/analytics/repository/storage/postgres"
 )
 
 type AnalyticsUseCase interface {
-	RecordLogin(logins int32) error
-	RecordNewUser(registers int32) error
+	RecordLogin(email, phone string) error
+	RecordNewUser(email, phone string) error
 	GetQuantityLogins() (int32, error)
 	GetQuantityRegister() (int32, error)
 }
@@ -16,15 +16,15 @@ type AnalyticsUseCase interface {
 type analyticsUC struct {
 	cfg   *config.Config
 	log   *logger.ZapLogger
-	aRepo mysql.AnalyticsRepository
+	aRepo postgres.AnalyticsRepository
 }
 
-func NewAnalyticsUC(cfg *config.Config, log *logger.ZapLogger, aRepo mysql.AnalyticsRepository) *analyticsUC {
+func NewAnalyticsUC(cfg *config.Config, log *logger.ZapLogger, aRepo postgres.AnalyticsRepository) *analyticsUC {
 	return &analyticsUC{cfg: cfg, log: log, aRepo: aRepo}
 }
 
-func (uc *analyticsUC) RecordLogin(logins int32) error {
-	err := uc.aRepo.SaveSuccessfulLogin(logins)
+func (uc *analyticsUC) RecordLogin(email, phone string) error {
+	err := uc.aRepo.SaveSuccessfulLogin(email, phone)
 	if err != nil {
 		return err
 	}
@@ -32,8 +32,8 @@ func (uc *analyticsUC) RecordLogin(logins int32) error {
 	return nil
 }
 
-func (uc *analyticsUC) RecordNewUser(registers int32) error {
-	err := uc.aRepo.SaveSuccessfulRegister(registers)
+func (uc *analyticsUC) RecordNewUser(email, phone string) error {
+	err := uc.aRepo.SaveSuccessfulRegister(email, phone)
 	if err != nil {
 		return err
 	}

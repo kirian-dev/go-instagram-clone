@@ -32,7 +32,7 @@ func NewAnalyticsServerGrpc(cfg *config.Config, log *logger.ZapLogger, analytics
 }
 
 func (h *server) RecordLogin(ctx context.Context, req *analytics.LoginRequest) (*emptypb.Empty, error) {
-	err := h.analyticsUC.RecordLogin(req.SuccessfulLogins)
+	err := h.analyticsUC.RecordLogin(req.Email, req.Phone)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (h *server) RecordLogin(ctx context.Context, req *analytics.LoginRequest) (
 }
 
 func (h *server) RecordNewUser(ctx context.Context, req *analytics.NewUserRequest) (*emptypb.Empty, error) {
-	err := h.analyticsUC.RecordNewUser(req.SuccessfulRegister)
+	err := h.analyticsUC.RecordNewUser(req.Email, req.Phone)
 	if err != nil {
 		return nil, err
 	}

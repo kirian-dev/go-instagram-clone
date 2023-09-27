@@ -22,5 +22,5 @@ func MapAuthRoutes(authGroup *echo.Group, h http.AuthHandlers, mw *middleware.Mi
 
 	authGroup.Use(mw.AdminAuthMiddleware())
 	authGroup.GET("/analytics/logins", h.GetLoginsCount())
-	authGroup.GET("/analytics/register", h.GetRegistersCount())
+	authGroup.GET("/analytics/registers", h.GetRegistersCount())
 }

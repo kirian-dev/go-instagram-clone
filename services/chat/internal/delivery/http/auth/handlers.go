@@ -76,7 +76,8 @@ func (h *authHandlers) Register() echo.HandlerFunc {
 		})
 
 		req := &pb.NewUserRequest{
-			SuccessfulRegister: 1,
+			Email: createdUser.Email,
+			Phone: createdUser.Phone,
 		}
 
 		_, err = h.analyticsClient.RecordNewUser(context.Background(), req)
@@ -145,7 +146,8 @@ func (h *authHandlers) Login() echo.HandlerFunc {
 		})
 
 		req := &pb.LoginRequest{
-			SuccessfulLogins: 1,
+			Email: existsUser.Email,
+			Phone: existsUser.Phone,
 		}
 
 		_, err = h.analyticsClient.RecordLogin(context.Background(), req)
