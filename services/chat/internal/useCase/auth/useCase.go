@@ -6,10 +6,13 @@ import (
 	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/pkg/logger"
 	"go-instagram-clone/pkg/security"
+	"go-instagram-clone/pkg/utils"
 	"go-instagram-clone/services/chat/internal/domain/models"
 	"go-instagram-clone/services/chat/internal/repository/storage/postgres"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/thanhpk/randstr"
 )
 
 type authUC struct {
@@ -21,7 +24,27 @@ type authUC struct {
 func New(cfg *config.Config, authRepo postgres.AuthRepository, log *logger.ZapLogger) *authUC {
 	return &authUC{cfg: cfg, authRepo: authRepo, log: log}
 }
-func (uc *authUC) Register(user *models.User) (*models.User, error) {
+
+func (uc *authUC) convertToResponse(user *models.User) *models.UserResponse {
+	return &models.UserResponse{
+		ID:                user.ID,
+		FirstName:         user.FirstName,
+		LastName:          user.LastName,
+		Email:             user.Email,
+		Phone:             user.Phone,
+		ProfilePictureURL: user.ProfilePictureURL,
+		City:              user.City,
+		Gender:            user.Gender,
+		Birthday:          user.Birthday,
+		Age:               user.Age,
+		CreatedAt:         user.CreatedAt,
+		UpdatedAt:         user.UpdatedAt,
+		Role:              user.Role,
+		LastLoginAt:       user.LastLoginAt,
+	}
+}
+
+func (uc *authUC) Register(user *models.User) (*models.UserResponse, error) {
 	existsUserByEmail, err := uc.authRepo.GetByEmail(user.Email)
 	if err != nil {
 		return nil, err
@@ -51,12 +74,11 @@ func (uc *authUC) Register(user *models.User) (*models.User, error) {
 		return nil, err
 	}
 
-	security.DeletePassword(&newUser.Password)
-
-	return newUser, nil
+	response := uc.convertToResponse(newUser)
+	return response, nil
 }
 
-func (uc *authUC) Login(user *models.User) (*models.User, error) {
+func (uc *authUC) Login(user *models.User) (*models.UserResponse, error) {
 	var foundUser *models.User
 
 	existsUserByEmail, err := uc.authRepo.GetByEmail(user.Email)
@@ -86,36 +108,39 @@ func (uc *authUC) Login(user *models.User) (*models.User, error) {
 		return nil, err
 	}
 
-	security.DeletePassword(&foundUser.Password)
-
-	return foundUser, nil
+	response := uc.convertToResponse(foundUser)
+	return response, nil
 }
 
-func (uc *authUC) GetUsers() ([]*models.User, error) {
+func (uc *authUC) GetUsers() ([]*models.UserResponse, error) {
 	users, err := uc.authRepo.GetUsers()
 	if err != nil {
 		uc.log.Error("Error in GetUsers:", err)
 		return nil, err
 	}
 
-	return users, nil
+	responseUsers := make([]*models.UserResponse, 0, len(users))
+
+	for _, user := range users {
+		convertUser := uc.convertToResponse(user)
+		responseUsers = append(responseUsers, convertUser)
+	}
+
+	return responseUsers, nil
 }
 
-func (uc *authUC) GetUserByID(userID uuid.UUID) (*models.User, error) {
+func (uc *authUC) GetUserByID(userID uuid.UUID) (*models.UserResponse, error) {
 	user, err := uc.authRepo.GetByID(userID)
 	if err != nil {
 		uc.log.Error("Error in GetUser:", err)
 		return nil, err
 	}
 
-	security.DeletePassword(&user.Password)
-	return user, nil
+	response := uc.convertToResponse(user)
+	return response, nil
 }
 
-func (uc *authUC) UpdateUser(
-	user *models.User,
-	userID uuid.UUID,
-) (*models.User, error) {
+func (uc *authUC) UpdateUser(user *models.User, userID uuid.UUID) (*models.UserResponse, error) {
 	existingUser, err := uc.authRepo.GetByID(userID)
 	if err != nil {
 		return nil, errors.New(e.ErrUserNotFound)
@@ -124,7 +149,6 @@ func (uc *authUC) UpdateUser(
 	existingUser.FirstName = user.FirstName
 	existingUser.LastName = user.LastName
 	existingUser.Email = user.Email
-	existingUser.Password = user.Password
 	existingUser.Role = user.Role
 	existingUser.ProfilePictureURL = user.ProfilePictureURL
 	existingUser.Phone = user.Phone
@@ -138,13 +162,57 @@ func (uc *authUC) UpdateUser(
 		uc.log.Error("Error in UpdateUser:", err)
 		return nil, err
 	}
-	security.DeletePassword(&updatedUser.Password)
 
-	return updatedUser, nil
+	response := uc.convertToResponse(updatedUser)
+	return response, nil
 }
 
 func (uc *authUC) DeleteUser(userID uuid.UUID) error {
 	err := uc.authRepo.DeleteUser(userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *authUC) ForgotPassword(email string) (*models.UserResponse, string, error) {
+	existsUser, err := uc.authRepo.GetByEmail(email)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if existsUser == nil {
+		return nil, "", errors.New(e.ErrEmailNotExists)
+	}
+
+	resetToken := randstr.String(20)
+	passwordResetToken, err := utils.Encode(resetToken)
+	if err != nil {
+		return nil, "", err
+	}
+	existsUser.PasswordResetToken = passwordResetToken
+	existsUser.PasswordResetAt = time.Now().Add(time.Minute * 15)
+
+	updatedUser, err := uc.authRepo.UpdateUser(existsUser)
+	if err != nil {
+		return nil, "", err
+	}
+
+	response := uc.convertToResponse(updatedUser)
+	return response, resetToken, nil
+}
+
+func (uc *authUC) ResetPassword(token, password string) error {
+	existsUser, err := uc.authRepo.GetByToken(token)
+	if err != nil {
+		return err
+	}
+
+	existsUser.Password = password
+	existsUser.PasswordResetToken = ""
+
+	_, err = uc.authRepo.UpdateUser(existsUser)
 	if err != nil {
 		return err
 	}

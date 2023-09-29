@@ -14,6 +14,8 @@ type AuthHandlers interface {
 	GetAccount() echo.HandlerFunc
 	GetLoginsCount() echo.HandlerFunc
 	GetRegistersCount() echo.HandlerFunc
+	ForgotPassword() echo.HandlerFunc
+	ResetPassword() echo.HandlerFunc
 }
 
 type MessageHandlers interface {

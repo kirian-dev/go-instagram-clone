@@ -2,14 +2,20 @@ package auth
 
 import (
 	"context"
+	"encoding/base64"
 	"go-instagram-clone/config"
 	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/pkg/logger"
+	"go-instagram-clone/pkg/security"
 	"go-instagram-clone/pkg/utils"
+	"os"
+
 	pb "go-instagram-clone/services/analytics/cmd/proto"
 	"go-instagram-clone/services/chat/internal/domain/models"
+	"go-instagram-clone/services/chat/internal/helpers"
 	"go-instagram-clone/services/chat/internal/useCase"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -229,6 +235,106 @@ func (h *authHandlers) Logout() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, res)
+	}
+}
+
+// @Summary Forgot password
+// @Description Send token to email for password reset
+// @Accept json
+// @Produce json
+// @Tags Auth
+// @Success 200  {object} "message: Letter successfully reset to your email address"
+// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Router /auth/forgot-password [post]
+func (h *authHandlers) ForgotPassword() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		type ForgotPasswordInput struct {
+			Email string `json:"email" validate:"required"`
+		}
+
+		payload := &ForgotPasswordInput{}
+
+		if err := utils.ReadRequest(c, payload); err != nil {
+			h.log.Error(err)
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+		user, resetToken, err := h.authUC.ForgotPassword(payload.Email)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
+		}
+		var firstName = user.FirstName
+		if strings.Contains(firstName, " ") {
+			firstName = strings.Split(firstName, " ")[1]
+		}
+		imagePath := "public/img/reset-password.png"
+		imageBytes, err := os.ReadFile(imagePath)
+		if err != nil {
+			h.log.Error(err)
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+
+		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
+
+		emailData := helpers.EmailData{
+			URL:       h.cfg.ClientOrigin + "/reset-password/" + resetToken,
+			FirstName: firstName,
+			Subject:   "Your password reset token (valid for 10min)",
+		}
+
+		// Send email with the image
+		helpers.SendEmail(user, &emailData, "resetPassword.html", h.cfg, h.log, imageBytes, imageBase64)
+
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Letter successfully reset to your email address",
+		})
+	}
+}
+
+// @Summary Reset password
+// @Description Reset password with token
+// @Accept json
+// @Produce json
+// @Tags Auth
+// @Param resetToken path string true "resetToken"
+// @Success 200  {object} "Password updated successfully"
+// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Router /auth/forgot-password [post]
+func (h *authHandlers) ResetPassword() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		type ResetPasswordInput struct {
+			Password        string `json:"password" validate:"required"`
+			PasswordConfirm string `json:"passwordConfirm" validate:"required"`
+		}
+
+		payload := &ResetPasswordInput{}
+
+		resetToken := c.Param("resetToken")
+
+		if err := utils.ReadRequest(c, payload); err != nil {
+			h.log.Error(err)
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+
+		if payload.Password != payload.PasswordConfirm {
+			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: e.ErrPasswordDoesNotMatch})
+		}
+
+		hashedPassword, err := security.HashPassword(payload.Password)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+
+		passwordResetToken, err := utils.Encode(resetToken)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: e.ErrInternalServer})
+		}
+
+		err = h.authUC.ResetPassword(passwordResetToken, hashedPassword)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"message": "Password updated successfully"})
 	}
 }
 

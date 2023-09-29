@@ -34,4 +34,5 @@ const (
 	ErrNotCorrectSender          = "not correct sender"
 	ErrNotValidChatType          = "chat type not valid"
 	ErrMessageNotFound           = "message not found"
+	ErrPasswordDoesNotMatch      = "password does not match"
 )

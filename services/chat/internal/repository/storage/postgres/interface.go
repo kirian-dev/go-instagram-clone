@@ -9,7 +9,6 @@ import (
 
 type AuthRepository interface {
 	Register(user *models.User) (*models.User, error)
-
 	GetByEmail(email string) (*models.User, error)
 	GetByPhone(phone string) (*models.User, error)
 	GetUsers() ([]*models.User, error)
@@ -17,6 +16,7 @@ type AuthRepository interface {
 	UpdateLastLogin(userID uuid.UUID) error
 	UpdateUser(user *models.User) (*models.User, error)
 	DeleteUser(userID uuid.UUID) error
+	GetByToken(token string) (*models.User, error)
 }
 
 type MessagesRepository interface {

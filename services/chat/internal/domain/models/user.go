@@ -9,20 +9,40 @@ import (
 )
 
 type User struct {
-	ID                uuid.UUID `json:"id" gorm:"primaryKey"`
-	FirstName         string    `json:"first_name" validate:"required,lte=50"`
-	LastName          string    `json:"last_name" validate:"required,lte=50"`
-	Email             string    `json:"email" validate:"required,email,lte=60"`
-	Password          string    `json:"password" validate:"required,gte=6"`
-	Phone             string    `json:"phone" validate:"omitempty,e164"`
-	ProfilePictureURL string    `json:"profile_picture_url" validate:"omitempty,url"`
-	City              string    `json:"city" validate:"omitempty,lte=100"`
-	Gender            string    `json:"gender" validate:"omitempty,oneof=male female other"`
-	Birthday          string    `json:"birthday" validate:"omitempty"`
-	Age               int       `json:"age" validate:"omitempty,gte=0,max=200"`
+	ID                 uuid.UUID `json:"id" gorm:"primaryKey"`
+	FirstName          string    `json:"first_name" validate:"required,lte=50"`
+	LastName           string    `json:"last_name" validate:"required,lte=50"`
+	Email              string    `json:"email" validate:"required,email,lte=60"`
+	Password           string    `json:"password" validate:"required,gte=6"`
+	Phone              string    `json:"phone" validate:"omitempty,e164"`
+	ProfilePictureURL  string    `json:"profile_picture_url" validate:"omitempty,url"`
+	City               string    `json:"city" validate:"omitempty,lte=100"`
+	Gender             string    `json:"gender" validate:"omitempty,oneof=male female other"`
+	Birthday           string    `json:"birthday" validate:"omitempty"`
+	Age                int       `json:"age" validate:"omitempty,gte=0,max=200"`
+	CreatedAt          time.Time `json:"created_at"`
+	UpdatedAt          time.Time `json:"updated_at"`
+	Role               string    `json:"role" validate:"omitempty,oneof=user admin"`
+	LastLoginAt        time.Time `json:"last_login_at"`
+	VerificationCode   string
+	PasswordResetToken string
+	PasswordResetAt    time.Time
+}
+
+type UserResponse struct {
+	ID                uuid.UUID `json:"id"`
+	FirstName         string    `json:"first_name"`
+	LastName          string    `json:"last_name"`
+	Email             string    `json:"email"`
+	Phone             string    `json:"phone"`
+	ProfilePictureURL string    `json:"profile_picture_url"`
+	City              string    `json:"city"`
+	Gender            string    `json:"gender"`
+	Birthday          string    `json:"birthday"`
+	Age               int       `json:"age"`
 	CreatedAt         time.Time `json:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at"`
-	Role              string    `json:"role" validate:"omitempty,oneof=user admin"`
+	Role              string    `json:"role"`
 	LastLoginAt       time.Time `json:"last_login_at"`
 }
 

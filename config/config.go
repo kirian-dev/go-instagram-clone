@@ -30,6 +30,12 @@ type Config struct {
 	AnalyticsPostgresPort     string
 	AnalyticsPostgresDBName   string
 	AnalyticsPostgresSslMode  string
+	EmailFrom                 string
+	SMTPHost                  string
+	SMTPPassword              string
+	SMTPPort                  string
+	SMTPUser                  string
+	ClientOrigin              string
 }
 
 func LoadConfig() (*Config, error) {
@@ -57,6 +63,12 @@ func LoadConfig() (*Config, error) {
 		AnalyticsPostgresPort:     os.Getenv("AnalyticsPostgresPort"),
 		AnalyticsPostgresDBName:   os.Getenv("AnalyticsPostgresDBName"),
 		AnalyticsPostgresSslMode:  os.Getenv("AnalyticsPostgresSslMode"),
+		EmailFrom:                 os.Getenv("EmailFrom"),
+		SMTPHost:                  os.Getenv("SMTPHost"),
+		SMTPPassword:              os.Getenv("SMTPPassword"),
+		SMTPPort:                  os.Getenv("SMTPPort"),
+		SMTPUser:                  os.Getenv("SMTPUser"),
+		ClientOrigin:              os.Getenv("ClientOrigin"),
 	}
 
 	var err error
@@ -101,6 +113,12 @@ func validateConfig(cfg *Config) error {
 		{cfg.AnalyticsPostgresPort, "AnalyticsPostgresPort"},
 		{cfg.AnalyticsPostgresHost, "AnalyticsPostgresHost"},
 		{cfg.AnalyticsPostgresSslMode, "AnalyticsPostgresSslMode"},
+		{cfg.EmailFrom, "EmailFrom"},
+		{cfg.SMTPHost, "SMTPHost"},
+		{cfg.SMTPPassword, "SMTPPassword"},
+		{cfg.SMTPPort, "SMTPPort"},
+		{cfg.SMTPUser, "SMTPUser"},
+		{cfg.ClientOrigin, "ClientOrigin"},
 	}
 
 	for _, field := range requiredFields {

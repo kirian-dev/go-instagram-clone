@@ -1,7 +1,8 @@
 package auth
 
 import (
-	"go-instagram-clone/pkg/security"
+	"errors"
+	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/services/chat/internal/domain/models"
 	"time"
 
@@ -61,14 +62,23 @@ func (r *authRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 	return &user, nil
 }
 
+func (r *authRepository) GetByToken(token string) (*models.User, error) {
+	var user models.User
+	if err := r.db.Where("password_reset_token = ? AND password_reset_at > ?", token, time.Now()).First(&user).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, errors.New(e.ErrTokenExpired)
+	}
+	return &user, nil
+}
+
 func (r *authRepository) GetUsers() ([]*models.User, error) {
 	var users []*models.User
 	if err := r.db.Find(&users).Error; err != nil {
 		return nil, err
 	}
-	for _, user := range users {
-		security.DeletePassword(&user.Password)
-	}
+
 	return users, nil
 }
 
