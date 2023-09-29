@@ -48,7 +48,7 @@ func ParseTemplateDir(relativeDir string) (*template.Template, error) {
 	return template.ParseFiles(paths...)
 }
 
-func SendEmail(user *models.UserResponse, data *EmailData, emailTemp string, cfg *config.Config, log *logger.ZapLogger, imageByte []byte, imageBase64 string) {
+func SendEmail(user *models.UserResponse, data *EmailData, emailTemp string, cfg *config.Config, log *logger.ZapLogger, imageByte []byte, imageBase64 string, imageName string) {
 	from := cfg.EmailFrom
 	smtpPass := cfg.SMTPPassword
 	smtpUser := cfg.SMTPUser
@@ -71,14 +71,13 @@ func SendEmail(user *models.UserResponse, data *EmailData, emailTemp string, cfg
 	m.SetHeader("To", to)
 	m.SetHeader("Subject", data.Subject)
 
-	// Add the image as an inline attachment
 	if imageByte != nil && imageBase64 != "" {
-		m.Embed("reset-password-image", gomail.SetCopyFunc(func(w io.Writer) error {
+		m.Embed(imageName, gomail.SetCopyFunc(func(w io.Writer) error {
 			_, err := w.Write(imageByte)
 			return err
 		}), gomail.SetHeader(map[string][]string{
-			"Content-Type":              {"image/png"}, // Adjust content type based on your image type
-			"Content-ID":                {"<reset-password-image>"},
+			"Content-Type":              {"image/png"},
+			"Content-ID":                {"<" + imageName + ">"},
 			"Content-Transfer-Encoding": {"base64"},
 		}))
 	}

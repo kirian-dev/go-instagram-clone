@@ -14,6 +14,8 @@ func MapAuthRoutes(authGroup *echo.Group, h http.AuthHandlers, mw *middleware.Mi
 	authGroup.POST("/logout", h.Logout())
 	authGroup.POST("/forgot-password", h.ForgotPassword())
 	authGroup.PATCH("/reset-password/:resetToken", h.ResetPassword())
+	authGroup.POST("/verify-email", h.SendVerificationEmail())
+	authGroup.PATCH("/verify-email/:verifyCode", h.VerifyEmail())
 
 	authGroup.Use(mw.AuthJWTMiddleware())
 	authGroup.GET("/all", h.GetUsers())

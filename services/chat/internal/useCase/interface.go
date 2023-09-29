@@ -16,6 +16,8 @@ type AuthUseCase interface {
 	DeleteUser(userID uuid.UUID) error
 	ForgotPassword(email string) (*models.UserResponse, string, error)
 	ResetPassword(token, password string) error
+	SendVerificationEmail(email string) (*models.UserResponse, string, error)
+	VerifyEmail(code string) error
 }
 
 type MessagesUseCase interface {

@@ -24,6 +24,7 @@ type User struct {
 	UpdatedAt          time.Time `json:"updated_at"`
 	Role               string    `json:"role" validate:"omitempty,oneof=user admin"`
 	LastLoginAt        time.Time `json:"last_login_at"`
+	IsVerify           bool      `json:"is_verify"`
 	VerificationCode   string
 	PasswordResetToken string
 	PasswordResetAt    time.Time
@@ -44,6 +45,7 @@ type UserResponse struct {
 	UpdatedAt         time.Time `json:"updated_at"`
 	Role              string    `json:"role"`
 	LastLoginAt       time.Time `json:"last_login_at"`
+	IsVerify          bool      `json:"is_verify"`
 }
 
 func BeforeCreate(u *User) error {

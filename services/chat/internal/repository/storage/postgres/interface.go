@@ -17,6 +17,7 @@ type AuthRepository interface {
 	UpdateUser(user *models.User) (*models.User, error)
 	DeleteUser(userID uuid.UUID) error
 	GetByToken(token string) (*models.User, error)
+	GetByCode(code string) (*models.User, error)
 }
 
 type MessagesRepository interface {

@@ -244,7 +244,7 @@ func (h *authHandlers) Logout() echo.HandlerFunc {
 // @Produce json
 // @Tags Auth
 // @Success 200  {object} "message: Letter successfully reset to your email address"
-// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Failure 500 {object} e.ErrorResponse "Internal Server Error"
 // @Router /auth/forgot-password [post]
 func (h *authHandlers) ForgotPassword() echo.HandlerFunc {
 	return func(c echo.Context) error {
@@ -272,17 +272,16 @@ func (h *authHandlers) ForgotPassword() echo.HandlerFunc {
 			h.log.Error(err)
 			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
 		}
-
 		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
+		imageName := "reset-password-image"
 
 		emailData := helpers.EmailData{
 			URL:       h.cfg.ClientOrigin + "/reset-password/" + resetToken,
 			FirstName: firstName,
-			Subject:   "Your password reset token (valid for 10min)",
+			Subject:   "Reset your password",
 		}
 
-		// Send email with the image
-		helpers.SendEmail(user, &emailData, "resetPassword.html", h.cfg, h.log, imageBytes, imageBase64)
+		helpers.SendEmail(user, &emailData, "resetPassword.html", h.cfg, h.log, imageBytes, imageBase64, imageName)
 
 		return c.JSON(http.StatusOK, map[string]string{
 			"message": "Letter successfully reset to your email address",
@@ -297,8 +296,8 @@ func (h *authHandlers) ForgotPassword() echo.HandlerFunc {
 // @Tags Auth
 // @Param resetToken path string true "resetToken"
 // @Success 200  {object} "Password updated successfully"
-// @Failure 401 {object} e.ErrorResponse "Unauthorized"
-// @Router /auth/forgot-password [post]
+// @Failure 400 {object} e.ErrorResponse "Token is invalid"
+// @Router /auth/reset-password/{resetToken} [patch]
 func (h *authHandlers) ResetPassword() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		type ResetPasswordInput struct {
@@ -335,6 +334,81 @@ func (h *authHandlers) ResetPassword() echo.HandlerFunc {
 		}
 
 		return c.JSON(http.StatusOK, map[string]string{"message": "Password updated successfully"})
+	}
+}
+
+// @Summary Verify email
+// @Description Send verification letter to user email
+// @Accept json
+// @Produce json
+// @Tags Auth
+// @Param resetToken path string true "resetToken"
+// @Success 200  {object} "Verification email sent successfully"
+// @Failure 500 {object} e.ErrorResponse "Internal Server Error"
+// @Router /auth/verify-email [post]
+func (h *authHandlers) SendVerificationEmail() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		type VerificationEmail struct {
+			Email string `json:"email"`
+		}
+
+		payload := &VerificationEmail{}
+
+		if err := utils.ReadRequest(c, payload); err != nil {
+			h.log.Error(err)
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+
+		user, code, err := h.authUC.SendVerificationEmail(payload.Email)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
+		}
+		var firstName = user.FirstName
+		if strings.Contains(firstName, " ") {
+			firstName = strings.Split(firstName, " ")[1]
+		}
+		imagePath := "public/img/verify-email.png"
+		imageBytes, err := os.ReadFile(imagePath)
+		if err != nil {
+			h.log.Error(err)
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+		imageBase64 := base64.StdEncoding.EncodeToString(imageBytes)
+		imageName := "verify-email-image"
+
+		emailData := helpers.EmailData{
+			URL:       h.cfg.ClientOrigin + "/verification-code/" + code,
+			FirstName: firstName,
+			Subject:   "Verify your email",
+		}
+
+		helpers.SendEmail(user, &emailData, "verifyEmail.html", h.cfg, h.log, imageBytes, imageBase64, imageName)
+
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Verification email sent successfully",
+		})
+	}
+}
+
+// @Summary Verify email
+// @Description Verify email with code
+// @Accept json
+// @Produce json
+// @Tags Auth
+// @Param verifyCode path string true "verifyCode"
+// @Success 200  {object} "Your account has been verified"
+// @Failure 400 {object} e.ErrorResponse "Code is invalid"
+// @Router /auth/verify-email/{verifyCode} [patch]
+func (h *authHandlers) VerifyEmail() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		code := c.Param("verifyCode")
+
+		err := h.authUC.VerifyEmail(code)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{"message": "Your account has been verified"})
 	}
 }
 

@@ -41,6 +41,7 @@ func (uc *authUC) convertToResponse(user *models.User) *models.UserResponse {
 		UpdatedAt:         user.UpdatedAt,
 		Role:              user.Role,
 		LastLoginAt:       user.LastLoginAt,
+		IsVerify:          user.IsVerify,
 	}
 }
 
@@ -51,7 +52,7 @@ func (uc *authUC) Register(user *models.User) (*models.UserResponse, error) {
 	}
 
 	if existsUserByEmail != nil {
-		return nil, errors.New(e.ErrEmailNotExists)
+		return nil, errors.New(e.ErrEmailExists)
 	}
 
 	existsUserByPhone, err := uc.authRepo.GetByPhone(user.Phone)
@@ -186,6 +187,10 @@ func (uc *authUC) ForgotPassword(email string) (*models.UserResponse, string, er
 		return nil, "", errors.New(e.ErrEmailNotExists)
 	}
 
+	if !existsUser.IsVerify {
+		return nil, "", errors.New(e.ErrEmailMustBeVerified)
+	}
+
 	resetToken := randstr.String(20)
 	passwordResetToken, err := utils.Encode(resetToken)
 	if err != nil {
@@ -217,5 +222,43 @@ func (uc *authUC) ResetPassword(token, password string) error {
 		return err
 	}
 
+	return nil
+}
+
+func (uc *authUC) SendVerificationEmail(email string) (*models.UserResponse, string, error) {
+	existsUser, err := uc.authRepo.GetByEmail(email)
+	if err != nil {
+		return nil, "", err
+	}
+
+	if existsUser == nil {
+		return nil, "", errors.New(e.ErrEmailNotExists)
+	}
+
+	verificationCode := randstr.String(20)
+	existsUser.VerificationCode = verificationCode
+
+	updatedUser, err := uc.authRepo.UpdateUser(existsUser)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return uc.convertToResponse(updatedUser), verificationCode, nil
+}
+
+func (uc *authUC) VerifyEmail(code string) error {
+	existsUser, err := uc.authRepo.GetByCode(code)
+	if err != nil {
+		return err
+	}
+
+	existsUser.VerificationCode = ""
+	existsUser.IsVerify = true
+
+	updated, err := uc.authRepo.UpdateUser(existsUser)
+	if err != nil {
+		return err
+	}
+	uc.log.Info(updated)
 	return nil
 }
