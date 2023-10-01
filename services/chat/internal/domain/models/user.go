@@ -48,6 +48,15 @@ type UserResponse struct {
 	IsVerify          bool      `json:"is_verify"`
 }
 
+type UserListResponse struct {
+	Users      []*UserResponse `json:"users"`
+	TotalCount int64           `json:"totalCount"`
+	TotalPages int             `json:"totalPages"`
+	Page       int             `json:"page"`
+	Size       int             `json:"size"`
+	HasMore    bool            `json:"hasMore"`
+}
+
 func BeforeCreate(u *User) error {
 	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
 	u.Password = strings.TrimSpace(u.Password)

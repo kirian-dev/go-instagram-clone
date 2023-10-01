@@ -22,6 +22,7 @@ type UsersHandlers interface {
 	UpdateUser() echo.HandlerFunc
 	GetAccount() echo.HandlerFunc
 	UpdateAvatar() echo.HandlerFunc
+	SearchUsers() echo.HandlerFunc
 }
 
 type MessageHandlers interface {

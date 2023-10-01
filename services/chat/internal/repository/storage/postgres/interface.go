@@ -17,10 +17,11 @@ type AuthRepository interface {
 }
 
 type UsersRepository interface {
-	GetUsers() ([]*models.User, error)
+	GetUsers(pag *utils.PaginationQuery) (*models.UserListResponse, error)
 	GetByID(userID uuid.UUID) (*models.User, error)
 	UpdateUser(user *models.User) (*models.User, error)
 	DeleteUser(userID uuid.UUID) error
+	SearchByQuery(query string, pag *utils.PaginationQuery) (*models.UserListResponse, error)
 }
 
 type MessagesRepository interface {

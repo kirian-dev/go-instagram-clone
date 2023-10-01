@@ -5,6 +5,7 @@ import (
 	"go-instagram-clone/config"
 	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/pkg/logger"
+	"go-instagram-clone/pkg/utils"
 	"go-instagram-clone/services/chat/internal/domain/models"
 	"go-instagram-clone/services/chat/internal/helpers"
 	"go-instagram-clone/services/chat/internal/repository/storage/postgres"
@@ -22,21 +23,14 @@ func New(cfg *config.Config, usersRepo postgres.UsersRepository, log *logger.Zap
 	return &usersUC{cfg: cfg, usersRepo: usersRepo, log: log}
 }
 
-func (uc *usersUC) GetUsers() ([]*models.UserResponse, error) {
-	users, err := uc.usersRepo.GetUsers()
+func (uc *usersUC) GetUsers(pag *utils.PaginationQuery) (*models.UserListResponse, error) {
+	usersPag, err := uc.usersRepo.GetUsers(pag)
 	if err != nil {
 		uc.log.Error("Error in GetUsers:", err)
 		return nil, err
 	}
 
-	responseUsers := make([]*models.UserResponse, 0, len(users))
-
-	for _, user := range users {
-		convertUser := helpers.ConvertToResponseUser(user)
-		responseUsers = append(responseUsers, convertUser)
-	}
-
-	return responseUsers, nil
+	return usersPag, nil
 }
 
 func (uc *usersUC) GetUserByID(userID uuid.UUID) (*models.UserResponse, error) {
@@ -100,4 +94,12 @@ func (uc *usersUC) UpdateAvatar(userID uuid.UUID, avatarPath string) error {
 	}
 
 	return nil
+}
+
+func (r *usersUC) SearchByQuery(query string, pag *utils.PaginationQuery) (*models.UserListResponse, error) {
+	usersList, err := r.usersRepo.SearchByQuery(query, pag)
+	if err != nil {
+		return nil, err
+	}
+	return usersList, nil
 }

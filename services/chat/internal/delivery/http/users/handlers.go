@@ -33,31 +33,31 @@ func New(cfg *config.Config, log *logger.ZapLogger, usersUC useCase.UsersUseCase
 // @Tags Users
 // @Accept  json
 // @Produce  json
-// @Param id path int true "user_id"
-// @Success 200 {object} models.User
+// @Success 200 {object} models.UsersListResponse
 // @Failure 401 {object} e.ErrorResponse "Unauthorized"
 // @Failure 500 {object} e.ErrorResponse "Internal Server Error"
 // @Router /users/all [get]
 func (h *usersHandlers) GetUsers() echo.HandlerFunc {
 	return func(c echo.Context) error {
 
-		users, err := h.usersUC.GetUsers()
+		pag, err := utils.GetPaginationFromCtx(c)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+
+		usersPag, err := h.usersUC.GetUsers(pag)
 		if err != nil {
 			h.log.Error(err)
 			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: e.ErrInternalServer})
 		}
 
-		if len(users) == 0 {
-			return c.JSON(http.StatusOK, []interface{}{})
-		}
-
-		return c.JSON(http.StatusOK, users)
+		return c.JSON(http.StatusOK, usersPag)
 	}
 }
 
 // @Summary Get user by id
 // @Description Get user
-// @Tags Auth
+// @Tags Users
 // @Accept  json
 // @Produce  json
 // @Param userId path int true "userId"
@@ -86,7 +86,7 @@ func (h *usersHandlers) GetUserByID() echo.HandlerFunc {
 
 // @Summary Update user
 // @Description The user can update himself
-// @Tags Auth
+// @Tags Users
 // @Accept json
 // @Param userId path int true "userId"
 // @Produce json
@@ -122,7 +122,7 @@ func (h *usersHandlers) UpdateUser() echo.HandlerFunc {
 
 // @Summary Delete User
 // @Description The user can delete himself
-// @Tags Auth
+// @Tags Users
 // @Param userId path int true "userId"
 // @Produce json
 // @Success 204 "No Content"
@@ -151,7 +151,8 @@ func (h *usersHandlers) DeleteUser() echo.HandlerFunc {
 // @Description Get the account details of the authenticated user.
 // @Accept json
 // @Produce json
-// @Tags Auth
+// @Tags Users
+// @Param userId path int true "userId"
 // @Success 200 {object} models.User
 // @Failure 401 {object} e.ErrorResponse "Unauthorized"
 // @Router /users/account [get]
@@ -176,6 +177,15 @@ func (h *usersHandlers) GetAccount() echo.HandlerFunc {
 	}
 }
 
+// @Summary Update avatar
+// @Description Update avatar for user account
+// @Accept json
+// @Produce json
+// @Tags Users
+// @Param userId path int true "userId"
+// @Success 200 {string} "Avatar updated successfully"
+// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Router /users/{userId}/avatar [patch]
 func (h *usersHandlers) UpdateAvatar() echo.HandlerFunc {
 	return func(c echo.Context) error {
 		userID, err := utils.AuthorizeUser(c)
@@ -216,5 +226,29 @@ func (h *usersHandlers) UpdateAvatar() echo.HandlerFunc {
 		return c.JSON(http.StatusOK, map[string]string{
 			"message": "Avatar updated successfully",
 		})
+	}
+}
+
+// @Summary Search user
+// @Description search user by first name and last name using pagination
+// @Accept json
+// @Produce json
+// @Tags Users
+// @Success 200 {object} models.UsersListResponse
+// @Failure 401 {object} e.ErrorResponse "Unauthorized"
+// @Router /users/search [get]
+func (h *usersHandlers) SearchUsers() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		pag, err := utils.GetPaginationFromCtx(c)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, err.Error())
+		}
+
+		users, err := h.usersUC.SearchByQuery(c.QueryParam("query"), pag)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
+		}
+
+		return c.JSON(http.StatusOK, users)
 	}
 }

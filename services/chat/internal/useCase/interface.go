@@ -17,11 +17,12 @@ type AuthUseCase interface {
 }
 
 type UsersUseCase interface {
-	GetUsers() ([]*models.UserResponse, error)
+	GetUsers(pag *utils.PaginationQuery) (*models.UserListResponse, error)
 	GetUserByID(userID uuid.UUID) (*models.UserResponse, error)
 	UpdateUser(user *models.User, userID uuid.UUID) (*models.UserResponse, error)
 	DeleteUser(userID uuid.UUID) error
 	UpdateAvatar(userID uuid.UUID, avatarPath string) error
+	SearchByQuery(query string, page *utils.PaginationQuery) (*models.UserListResponse, error)
 }
 
 type MessagesUseCase interface {
