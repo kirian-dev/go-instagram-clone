@@ -5,6 +5,9 @@ import (
 	"go-instagram-clone/pkg/e"
 	"go-instagram-clone/pkg/logger"
 	"go-instagram-clone/pkg/utils"
+	"io"
+	"os"
+	"path/filepath"
 
 	"go-instagram-clone/services/chat/internal/domain/models"
 	"go-instagram-clone/services/chat/internal/useCase"
@@ -12,6 +15,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type usersHandlers struct {
@@ -169,5 +173,48 @@ func (h *usersHandlers) GetAccount() echo.HandlerFunc {
 			"account": user,
 		}
 		return c.JSON(http.StatusOK, res)
+	}
+}
+
+func (h *usersHandlers) UpdateAvatar() echo.HandlerFunc {
+	return func(c echo.Context) error {
+		userID, err := utils.AuthorizeUser(c)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
+		}
+		log.Info(userID)
+		file, err := c.FormFile("avatar")
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+
+		avatarFileName := uuid.New().String() + filepath.Ext(file.Filename)
+		avatarPath := filepath.Join("public/uploads", avatarFileName)
+
+		src, err := file.Open()
+		if err != nil {
+			log.Error(err)
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+		defer src.Close()
+
+		dst, err := os.Create(avatarPath)
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+		defer dst.Close()
+
+		if _, err := io.Copy(dst, src); err != nil {
+			return c.JSON(http.StatusInternalServerError, e.ErrorResponse{Error: err.Error()})
+		}
+
+		err = h.usersUC.UpdateAvatar(userID, avatarPath)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, e.ErrorResponse{Error: err.Error()})
+		}
+
+		return c.JSON(http.StatusOK, map[string]string{
+			"message": "Avatar updated successfully",
+		})
 	}
 }

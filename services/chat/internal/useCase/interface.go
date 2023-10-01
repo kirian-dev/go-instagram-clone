@@ -21,6 +21,7 @@ type UsersUseCase interface {
 	GetUserByID(userID uuid.UUID) (*models.UserResponse, error)
 	UpdateUser(user *models.User, userID uuid.UUID) (*models.UserResponse, error)
 	DeleteUser(userID uuid.UUID) error
+	UpdateAvatar(userID uuid.UUID, avatarPath string) error
 }
 
 type MessagesUseCase interface {

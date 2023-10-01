@@ -85,3 +85,19 @@ func (uc *usersUC) DeleteUser(userID uuid.UUID) error {
 
 	return nil
 }
+
+func (uc *usersUC) UpdateAvatar(userID uuid.UUID, avatarPath string) error {
+	existingUser, err := uc.usersRepo.GetByID(userID)
+	if err != nil {
+		return err
+	}
+
+	existingUser.ProfilePictureURL = avatarPath
+
+	_, err = uc.usersRepo.UpdateUser(existingUser)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
