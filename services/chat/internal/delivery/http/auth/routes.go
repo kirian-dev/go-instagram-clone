@@ -18,12 +18,6 @@ func MapAuthRoutes(authGroup *echo.Group, h http.AuthHandlers, mw *middleware.Mi
 	authGroup.PATCH("/verify-email/:verifyCode", h.VerifyEmail())
 
 	authGroup.Use(mw.AuthJWTMiddleware())
-	authGroup.GET("/all", h.GetUsers())
-	authGroup.GET("/:userId", h.GetUserByID())
-	authGroup.DELETE("/:userId", h.DeleteUser())
-	authGroup.PUT("/:userId", h.UpdateUser())
-	authGroup.GET("/account", h.GetAccount())
-
 	authGroup.Use(mw.AdminAuthMiddleware())
 	authGroup.GET("/analytics/logins", h.GetLoginsCount())
 	authGroup.GET("/analytics/registers", h.GetRegistersCount())

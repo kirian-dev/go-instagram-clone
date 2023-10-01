@@ -4,14 +4,19 @@ import (
 	authHttp "go-instagram-clone/services/chat/internal/delivery/http/auth"
 	chatsHttp "go-instagram-clone/services/chat/internal/delivery/http/chats"
 	messagesHttp "go-instagram-clone/services/chat/internal/delivery/http/messages"
+	usersHttp "go-instagram-clone/services/chat/internal/delivery/http/users"
 
 	appMiddleware "go-instagram-clone/services/chat/internal/middleware"
 	authRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/auth"
+	usersRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/users"
+
 	chatParticipantsRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/chatParticipants"
 	chatsRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/chats"
 
 	messagesRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/messages"
 	authUseCase "go-instagram-clone/services/chat/internal/useCase/auth"
+	usersUseCase "go-instagram-clone/services/chat/internal/useCase/users"
+
 	chatsUseCase "go-instagram-clone/services/chat/internal/useCase/chats"
 	messagesUseCase "go-instagram-clone/services/chat/internal/useCase/messages"
 
@@ -23,18 +28,21 @@ import (
 func (s *Server) Handlers(e *echo.Echo) error {
 	// Init repository
 	aRepo := authRepo.NewAuthRepository(s.db)
+	usersRepo := usersRepo.NewUsersRepository(s.db)
 	messagesRepo := messagesRepo.NewMessagesRepository(s.db)
 	chatRepo := chatsRepo.NewChatRepository(s.db)
 	chatParticipantsRepo := chatParticipantsRepo.NewChatParticipantRepository(s.db)
 
 	// Init usecase
-	authUC := authUseCase.New(s.cfg, aRepo, s.log)
+	authUC := authUseCase.New(s.cfg, aRepo, usersRepo, s.log)
+	usersUC := usersUseCase.New(s.cfg, usersRepo, s.log)
 	messagesUC := messagesUseCase.New(s.cfg, messagesRepo, chatParticipantsRepo, chatRepo, s.log)
 	chatUC := chatsUseCase.New(s.cfg, chatRepo, chatParticipantsRepo, s.log)
 
 	// Init delivery
 	messagesHandlers := messagesHttp.New(s.cfg, s.log, messagesUC)
 	authHandlers := authHttp.New(s.cfg, s.log, authUC, s.analyticsClient)
+	usersHandlers := usersHttp.New(s.cfg, s.log, usersUC)
 	chatsHandlers := chatsHttp.New(s.cfg, s.log, chatUC)
 
 	//Api Middleware
@@ -59,10 +67,10 @@ func (s *Server) Handlers(e *echo.Echo) error {
 
 	authGroup := v1.Group("/auth")
 	authHttp.MapAuthRoutes(authGroup, authHandlers, mw)
-
+	usersGroup := v1.Group("/users")
+	usersHttp.MapAuthRoutes(usersGroup, usersHandlers, mw)
 	messagesGroup := v1.Group("/messages")
 	messagesHttp.MapMessagesRoutes(messagesGroup, messagesHandlers, mw)
-
 	chatsGroup := v1.Group("/chats")
 	chatsHttp.MapChatRoutes(chatsGroup, chatsHandlers, mw)
 

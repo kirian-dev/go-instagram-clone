@@ -10,14 +10,17 @@ import (
 type AuthUseCase interface {
 	Register(user *models.User) (*models.UserResponse, error)
 	Login(user *models.User) (*models.UserResponse, error)
-	GetUsers() ([]*models.UserResponse, error)
-	GetUserByID(userID uuid.UUID) (*models.UserResponse, error)
-	UpdateUser(user *models.User, userID uuid.UUID) (*models.UserResponse, error)
-	DeleteUser(userID uuid.UUID) error
 	ForgotPassword(email string) (*models.UserResponse, string, error)
 	ResetPassword(token, password string) error
 	SendVerificationEmail(email string) (*models.UserResponse, string, error)
 	VerifyEmail(code string) error
+}
+
+type UsersUseCase interface {
+	GetUsers() ([]*models.UserResponse, error)
+	GetUserByID(userID uuid.UUID) (*models.UserResponse, error)
+	UpdateUser(user *models.User, userID uuid.UUID) (*models.UserResponse, error)
+	DeleteUser(userID uuid.UUID) error
 }
 
 type MessagesUseCase interface {

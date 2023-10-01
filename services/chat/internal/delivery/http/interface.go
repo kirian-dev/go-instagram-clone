@@ -7,17 +7,20 @@ type AuthHandlers interface {
 	Login() echo.HandlerFunc
 	RefreshToken() echo.HandlerFunc
 	Logout() echo.HandlerFunc
-	GetUsers() echo.HandlerFunc
-	GetUserByID() echo.HandlerFunc
-	DeleteUser() echo.HandlerFunc
-	UpdateUser() echo.HandlerFunc
-	GetAccount() echo.HandlerFunc
 	GetLoginsCount() echo.HandlerFunc
 	GetRegistersCount() echo.HandlerFunc
 	ForgotPassword() echo.HandlerFunc
 	ResetPassword() echo.HandlerFunc
 	SendVerificationEmail() echo.HandlerFunc
 	VerifyEmail() echo.HandlerFunc
+}
+
+type UsersHandlers interface {
+	GetUsers() echo.HandlerFunc
+	GetUserByID() echo.HandlerFunc
+	DeleteUser() echo.HandlerFunc
+	UpdateUser() echo.HandlerFunc
+	GetAccount() echo.HandlerFunc
 }
 
 type MessageHandlers interface {

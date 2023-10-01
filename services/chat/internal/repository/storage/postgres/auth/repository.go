@@ -51,17 +51,6 @@ func (r *authRepository) GetByPhone(phone string) (*models.User, error) {
 	return &user, nil
 }
 
-func (r *authRepository) GetByID(userID uuid.UUID) (*models.User, error) {
-	var user models.User
-	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &user, nil
-}
-
 func (r *authRepository) GetByToken(token string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("password_reset_token = ? AND password_reset_at > ?", token, time.Now()).First(&user).Error; err != nil {
@@ -82,29 +71,6 @@ func (r *authRepository) GetByCode(code string) (*models.User, error) {
 		return nil, errors.New(e.ErrInvalidToken)
 	}
 	return &user, nil
-}
-
-func (r *authRepository) GetUsers() ([]*models.User, error) {
-	var users []*models.User
-	if err := r.db.Find(&users).Error; err != nil {
-		return nil, err
-	}
-
-	return users, nil
-}
-
-func (r *authRepository) UpdateUser(user *models.User) (*models.User, error) {
-	if err := r.db.Save(user).Error; err != nil {
-		return nil, err
-	}
-	return user, nil
-}
-
-func (r *authRepository) DeleteUser(userID uuid.UUID) error {
-	if err := r.db.Delete(&models.User{}, userID).Error; err != nil {
-		return err
-	}
-	return nil
 }
 
 func (r *authRepository) UpdateLastLogin(userID uuid.UUID) error {
