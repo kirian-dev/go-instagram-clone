@@ -8,7 +8,8 @@ const (
 	ErrBadRequest                = "bad request"
 	ErrInvalidCredentials        = "invalid credentials"
 	ErrPhoneNotExists            = "this phone already exists"
-	ErrEmailNotExists            = "this email already exists"
+	ErrEmailExists               = "this email already exists"
+	ErrEmailNotExists            = "this email not exists"
 	ErrNoSuchUser                = "user not found"
 	ErrNotFound                  = "not found"
 	ErrInvalidFormat             = "request body must be in JSON format"
@@ -34,4 +35,6 @@ const (
 	ErrNotCorrectSender          = "not correct sender"
 	ErrNotValidChatType          = "chat type not valid"
 	ErrMessageNotFound           = "message not found"
+	ErrPasswordDoesNotMatch      = "password does not match"
+	ErrEmailMustBeVerified       = "email must be verified"
 )

@@ -9,20 +9,33 @@ import (
 )
 
 type Config struct {
-	AppVersion        string
-	Port              string
-	Mode              string
-	ReadTimeout       time.Duration
-	WriteTimeout      time.Duration
-	CxtDefaultTimeout string
-	Debug             string
-	JwtSecretKey      string
-	PostgresDbname    string
-	PostgresUser      string
-	PostgresPassword  string
-	PostgresPort      string
-	PostgresHost      string
-	PostgresSslMode   string
+	AppVersion                string
+	ChatPort                  string
+	AnalyticsPort             string
+	Mode                      string
+	ReadTimeout               time.Duration
+	WriteTimeout              time.Duration
+	CxtDefaultTimeout         string
+	Debug                     string
+	JwtSecretKey              string
+	PostgresDbname            string
+	PostgresUser              string
+	PostgresPassword          string
+	PostgresPort              string
+	PostgresHost              string
+	PostgresSslMode           string
+	AnalyticsPostgresUser     string
+	AnalyticsPostgresPassword string
+	AnalyticsPostgresHost     string
+	AnalyticsPostgresPort     string
+	AnalyticsPostgresDBName   string
+	AnalyticsPostgresSslMode  string
+	EmailFrom                 string
+	SMTPHost                  string
+	SMTPPassword              string
+	SMTPPort                  string
+	SMTPUser                  string
+	ClientOrigin              string
 }
 
 func LoadConfig() (*Config, error) {
@@ -31,18 +44,31 @@ func LoadConfig() (*Config, error) {
 	}
 
 	cfg := &Config{
-		AppVersion:        os.Getenv("AppVersion"),
-		Port:              os.Getenv("Port"),
-		Mode:              os.Getenv("Mode"),
-		CxtDefaultTimeout: os.Getenv("CxtDefaultTimeout"),
-		Debug:             os.Getenv("Debug"),
-		JwtSecretKey:      os.Getenv("JwtSecretKey"),
-		PostgresDbname:    os.Getenv("PostgresDbname"),
-		PostgresUser:      os.Getenv("PostgresUser"),
-		PostgresPassword:  os.Getenv("PostgresPassword"),
-		PostgresPort:      os.Getenv("PostgresPort"),
-		PostgresHost:      os.Getenv("PostgresHost"),
-		PostgresSslMode:   os.Getenv("PostgresSslMode"),
+		AppVersion:                os.Getenv("AppVersion"),
+		ChatPort:                  os.Getenv("ChatPort"),
+		AnalyticsPort:             os.Getenv("AnalyticsPort"),
+		Mode:                      os.Getenv("Mode"),
+		CxtDefaultTimeout:         os.Getenv("CxtDefaultTimeout"),
+		Debug:                     os.Getenv("Debug"),
+		JwtSecretKey:              os.Getenv("JwtSecretKey"),
+		PostgresDbname:            os.Getenv("PostgresDbname"),
+		PostgresUser:              os.Getenv("PostgresUser"),
+		PostgresPassword:          os.Getenv("PostgresPassword"),
+		PostgresPort:              os.Getenv("PostgresPort"),
+		PostgresHost:              os.Getenv("PostgresHost"),
+		PostgresSslMode:           os.Getenv("PostgresSslMode"),
+		AnalyticsPostgresUser:     os.Getenv("AnalyticsPostgresUser"),
+		AnalyticsPostgresPassword: os.Getenv("AnalyticsPostgresPassword"),
+		AnalyticsPostgresHost:     os.Getenv("AnalyticsPostgresHost"),
+		AnalyticsPostgresPort:     os.Getenv("AnalyticsPostgresPort"),
+		AnalyticsPostgresDBName:   os.Getenv("AnalyticsPostgresDBName"),
+		AnalyticsPostgresSslMode:  os.Getenv("AnalyticsPostgresSslMode"),
+		EmailFrom:                 os.Getenv("EmailFrom"),
+		SMTPHost:                  os.Getenv("SMTPHost"),
+		SMTPPassword:              os.Getenv("SMTPPassword"),
+		SMTPPort:                  os.Getenv("SMTPPort"),
+		SMTPUser:                  os.Getenv("SMTPUser"),
+		ClientOrigin:              os.Getenv("ClientOrigin"),
 	}
 
 	var err error
@@ -69,7 +95,8 @@ func validateConfig(cfg *Config) error {
 		name  string
 	}{
 		{cfg.AppVersion, "AppVersion"},
-		{cfg.Port, "Port"},
+		{cfg.ChatPort, "ChatPort"},
+		{cfg.AnalyticsPort, "AnalyticsPort"},
 		{cfg.Mode, "Mode"},
 		{cfg.CxtDefaultTimeout, "CxtDefaultTimeout"},
 		{cfg.Debug, "Debug"},
@@ -80,6 +107,18 @@ func validateConfig(cfg *Config) error {
 		{cfg.PostgresPort, "PostgresPort"},
 		{cfg.PostgresHost, "PostgresHost"},
 		{cfg.PostgresSslMode, "PostgresSslMode"},
+		{cfg.AnalyticsPostgresDBName, "AnalyticsPostgresDBName"},
+		{cfg.AnalyticsPostgresUser, "AnalyticsPostgresUser"},
+		{cfg.AnalyticsPostgresPassword, "AnalyticsPostgresPassword"},
+		{cfg.AnalyticsPostgresPort, "AnalyticsPostgresPort"},
+		{cfg.AnalyticsPostgresHost, "AnalyticsPostgresHost"},
+		{cfg.AnalyticsPostgresSslMode, "AnalyticsPostgresSslMode"},
+		{cfg.EmailFrom, "EmailFrom"},
+		{cfg.SMTPHost, "SMTPHost"},
+		{cfg.SMTPPassword, "SMTPPassword"},
+		{cfg.SMTPPort, "SMTPPort"},
+		{cfg.SMTPUser, "SMTPUser"},
+		{cfg.ClientOrigin, "ClientOrigin"},
 	}
 
 	for _, field := range requiredFields {
