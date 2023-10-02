@@ -5,6 +5,7 @@ import (
 	chatsHttp "go-instagram-clone/services/chat/internal/delivery/http/chats"
 	messagesHttp "go-instagram-clone/services/chat/internal/delivery/http/messages"
 	usersHttp "go-instagram-clone/services/chat/internal/delivery/http/users"
+	"go-instagram-clone/services/chat/internal/scheduler"
 
 	appMiddleware "go-instagram-clone/services/chat/internal/middleware"
 	authRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/auth"
@@ -73,6 +74,8 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	messagesHttp.MapMessagesRoutes(messagesGroup, messagesHandlers, mw)
 	chatsGroup := v1.Group("/chats")
 	chatsHttp.MapChatRoutes(chatsGroup, chatsHandlers, mw)
+
+	scheduler.RunBirthdayCron(s.db, s.log, s.cfg)
 
 	return nil
 }

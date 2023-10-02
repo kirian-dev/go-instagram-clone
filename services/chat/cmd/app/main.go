@@ -8,12 +8,12 @@ import (
 	"go-instagram-clone/services/chat/internal/domain/models"
 	"go-instagram-clone/services/chat/internal/server"
 
+	_ "go-instagram-clone/services/chat/docs/go-instagram-clone"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-
-	_ "go-instagram-clone/services/chat/docs/go-instagram-clone"
 )
 
 // @title GO-INSTAGRAM-CLONE
@@ -54,7 +54,6 @@ func main() {
 	defer analyticsConn.Close()
 
 	analyticsClient := pb.NewAnalyticsServiceClient(analyticsConn)
-
 	log.Info("Connected to analytics service")
 
 	s := server.New(cfg, log, db, analyticsClient)
