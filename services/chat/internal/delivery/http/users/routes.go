@@ -11,9 +11,11 @@ func MapAuthRoutes(usersGroup *echo.Group, h http.UsersHandlers, mw *middleware.
 	usersGroup.Use(mw.AuthJWTMiddleware())
 	usersGroup.GET("/all", h.GetUsers())
 	usersGroup.GET("/:userId", h.GetUserByID())
-	usersGroup.DELETE("/:userId", h.DeleteUser())
-	usersGroup.PUT("/:userId", h.UpdateUser())
 	usersGroup.GET("/account", h.GetAccount())
-	usersGroup.PATCH("/:userId/avatar", h.UpdateAvatar())
 	usersGroup.GET("/search", h.SearchUsers())
+	usersGroup.PUT("/:userId", h.UpdateUser())
+
+	usersGroup.Use(mw.AdminAuthMiddleware())
+	usersGroup.PATCH("/:userId/avatar", h.UpdateAvatar())
+	usersGroup.DELETE("/:userId", h.DeleteUser())
 }

@@ -28,6 +28,14 @@ func (r *usersRepository) convertUsers(users []*models.User) []*models.UserRespo
 	return usersConverted
 }
 
+func (r *usersRepository) CreateUser(user *models.User) (*models.User, error) {
+	if err := r.db.Create(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *usersRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {

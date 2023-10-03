@@ -6,6 +6,7 @@ import (
 	"go-instagram-clone/pkg/logger"
 	pb "go-instagram-clone/services/analytics/cmd/proto"
 	"go-instagram-clone/services/chat/internal/domain/models"
+	"go-instagram-clone/services/chat/internal/helpers"
 	"go-instagram-clone/services/chat/internal/server"
 
 	_ "go-instagram-clone/services/chat/docs/go-instagram-clone"
@@ -44,7 +45,7 @@ func main() {
 	}
 	log.Info("connected to postgres database")
 
-	db.AutoMigrate(&models.User{}, &models.Message{}, &models.Chat{}, &models.ChatParticipant{})
+	db.AutoMigrate(&models.User{}, &models.Message{}, &models.Chat{}, &models.ChatParticipant{}, &models.FileImport{})
 
 	analyticsConn, err := grpc.Dial(cfg.AnalyticsPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
@@ -55,6 +56,16 @@ func main() {
 
 	analyticsClient := pb.NewAnalyticsServiceClient(analyticsConn)
 	log.Info("Connected to analytics service")
+
+	// Create test file for upload accounts
+	fileName := "test_accounts.csv"
+	numAccounts := 20000
+
+	if err := helpers.GenerateCSV(fileName, numAccounts, "public"); err != nil {
+		fmt.Println("Error in create csv file:", err)
+		return
+	}
+	log.Info("Created csv file for upload accounts ", fileName)
 
 	s := server.New(cfg, log, db, analyticsClient)
 	if err = s.Run(); err != nil {
