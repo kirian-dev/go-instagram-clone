@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Chat struct {
@@ -24,4 +25,16 @@ const (
 type ChatWithParticipants struct {
 	Chat         Chat              `json:"chat"`
 	Participants []ChatParticipant `json:"participants"`
+}
+
+func (c *Chat) BeforeCreate(tx *gorm.DB) (err error) {
+	c.ChatID = uuid.New()
+	c.CreatedAt = time.Now()
+	c.UpdatedAt = time.Now()
+	return nil
+}
+
+func (c *Chat) BeforeUpdate(tx *gorm.DB) (err error) {
+	c.UpdatedAt = time.Now()
+	return nil
 }

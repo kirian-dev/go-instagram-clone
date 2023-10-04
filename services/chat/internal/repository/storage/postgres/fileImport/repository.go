@@ -16,7 +16,6 @@ func NewFileImportRepository(db *gorm.DB) *fileImportRepository {
 }
 
 func (r *fileImportRepository) CreateFile(fileImport *models.FileImport) (*models.FileImport, error) {
-	fileImport.ID = uuid.New()
 	if err := r.db.Create(fileImport).Error; err != nil {
 		return nil, err
 	}

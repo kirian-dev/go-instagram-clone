@@ -58,14 +58,16 @@ func main() {
 	log.Info("Connected to analytics service")
 
 	// Create test file for upload accounts
-	fileName := "test_accounts.csv"
-	numAccounts := 20000
+	if cfg.IsCreateTestCsvFile {
+		fileName := "test_accounts.csv"
+		numAccounts := 40000
 
-	if err := helpers.GenerateCSV(fileName, numAccounts, "public"); err != nil {
-		fmt.Println("Error in create csv file:", err)
-		return
+		if err := helpers.GenerateCSV(fileName, numAccounts, "public"); err != nil {
+			fmt.Println("Error in create csv file:", err)
+			return
+		}
+		log.Info("Created csv file for upload accounts ", fileName)
 	}
-	log.Info("Created csv file for upload accounts ", fileName)
 
 	s := server.New(cfg, log, db, analyticsClient)
 	if err = s.Run(); err != nil {

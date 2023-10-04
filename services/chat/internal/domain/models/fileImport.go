@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type FileImport struct {
@@ -23,3 +24,8 @@ const (
 	ImportStatusSuccess    FileImportStatus = "success"
 	ImportStatusFailed     FileImportStatus = "failed"
 )
+
+func (fi *FileImport) BeforeCreate(tx *gorm.DB) (err error) {
+	fi.ID = uuid.New()
+	return nil
+}

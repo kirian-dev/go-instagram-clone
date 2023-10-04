@@ -14,14 +14,15 @@ type authRepository struct {
 	db *gorm.DB
 }
 
+var (
+	errRecordNotFound = gorm.ErrRecordNotFound
+)
+
 func NewAuthRepository(db *gorm.DB) *authRepository {
 	return &authRepository{db: db}
 }
 
 func (r *authRepository) Register(user *models.User) (*models.User, error) {
-	// Generate a new UUID for the ID field
-	user.ID = uuid.New()
-	user.LastLoginAt = time.Now()
 	if err := r.db.Create(&user).Error; err != nil {
 		return nil, err
 	}
@@ -32,7 +33,7 @@ func (r *authRepository) Register(user *models.User) (*models.User, error) {
 func (r *authRepository) GetByEmail(email string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("email = ?", email).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if err == errRecordNotFound {
 			return nil, nil
 		}
 		return nil, err
@@ -43,7 +44,7 @@ func (r *authRepository) GetByEmail(email string) (*models.User, error) {
 func (r *authRepository) GetByPhone(phone string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("phone = ?", phone).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if err == errRecordNotFound {
 			return nil, nil
 		}
 		return nil, err
@@ -54,7 +55,7 @@ func (r *authRepository) GetByPhone(phone string) (*models.User, error) {
 func (r *authRepository) GetByToken(token string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("password_reset_token = ? AND password_reset_at > ?", token, time.Now()).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if err == errRecordNotFound {
 			return nil, nil
 		}
 		return nil, errors.New(e.ErrTokenExpired)
@@ -65,7 +66,7 @@ func (r *authRepository) GetByToken(token string) (*models.User, error) {
 func (r *authRepository) GetByCode(code string) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("verification_code = ?", code).First(&user).Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
+		if err == errRecordNotFound {
 			return nil, nil
 		}
 		return nil, errors.New(e.ErrInvalidToken)

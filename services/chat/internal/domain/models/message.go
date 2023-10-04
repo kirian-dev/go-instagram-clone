@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type Message struct {
@@ -24,4 +25,18 @@ type MessageListResponse struct {
 	Page       int        `json:"page"`
 	Size       int        `json:"size"`
 	HasMore    bool       `json:"hasMore"`
+}
+
+func (m *Message) BeforeCreate(tx *gorm.DB) (err error) {
+	m.ID = uuid.New()
+	m.CreatedAt = time.Now()
+	m.UpdatedAt = time.Now()
+	m.ReadAt = false
+
+	return nil
+}
+
+func (m *Message) BeforeUpdate(tx *gorm.DB) (err error) {
+	m.UpdatedAt = time.Now()
+	return nil
 }

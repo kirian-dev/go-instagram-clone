@@ -6,10 +6,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type User struct {
-	ID                 uuid.UUID `json:"id" gorm:"primaryKey"`
+	ID                 uuid.UUID `json:"id" gorm:"primaryKey;not_null"`
 	FirstName          string    `json:"first_name" validate:"required,lte=50"`
 	LastName           string    `json:"last_name" validate:"required,lte=50"`
 	Email              string    `json:"email" validate:"required,email,lte=60"`
@@ -57,9 +58,11 @@ type UserListResponse struct {
 	HasMore    bool            `json:"hasMore"`
 }
 
-func BeforeCreate(u *User) error {
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	u.ID = uuid.New()
 	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
 	u.Password = strings.TrimSpace(u.Password)
+	u.LastLoginAt = time.Now()
 
 	hashedPassword, err := security.HashPassword(u.Password)
 	if err != nil {
@@ -74,6 +77,21 @@ func BeforeCreate(u *User) error {
 	if u.Role != "" {
 		u.Role = strings.ToLower(strings.TrimSpace(u.Role))
 	}
+
+	return nil
+}
+
+func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
+	u.Email = strings.ToLower(strings.TrimSpace(u.Email))
+
+	if u.Phone != "" {
+		u.Phone = strings.TrimSpace(u.Phone)
+	}
+	if u.Role != "" {
+		u.Role = strings.ToLower(strings.TrimSpace(u.Role))
+	}
+
+	u.UpdatedAt = time.Now()
 
 	return nil
 }
