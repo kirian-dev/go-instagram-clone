@@ -52,8 +52,6 @@ func (uc *fileImportUC) UploadFile(file *multipart.FileHeader) error {
 		return err
 	}
 
-	uc.log.Info(rowCount)
-
 	fileImport := &models.FileImport{
 		ID:                 uuid.New(),
 		StartTime:          time.Now(),

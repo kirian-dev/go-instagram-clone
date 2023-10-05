@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	authHttp "go-instagram-clone/services/chat/internal/delivery/http/auth"
 	chatsHttp "go-instagram-clone/services/chat/internal/delivery/http/chats"
 	fileImportHttp "go-instagram-clone/services/chat/internal/delivery/http/fileImport"
@@ -10,6 +11,7 @@ import (
 	authRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/auth"
 	usersRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/users"
 	"go-instagram-clone/services/chat/internal/scheduler"
+	"net/http"
 
 	chatParticipantsRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/chatParticipants"
 	chatsRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/chats"
@@ -23,6 +25,7 @@ import (
 	chatsUseCase "go-instagram-clone/services/chat/internal/useCase/chats"
 	messagesUseCase "go-instagram-clone/services/chat/internal/useCase/messages"
 
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -69,6 +72,18 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Secure())
 	e.Use(middleware.BodyLimit("2M"))
+
+	// Add Prometheus middleware
+	e.Use(echoprometheus.NewMiddleware("chat"))
+	go func() {
+		metrics := echo.New()
+		metrics.GET("/metrics", echoprometheus.NewHandler())
+
+		if err := metrics.Start(s.cfg.MetricsPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.log.Fatal(err)
+		}
+	}()
+
 	v1 := e.Group("/api/v1")
 
 	authGroup := v1.Group("/auth")
@@ -80,8 +95,8 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	chatsGroup := v1.Group("/chats")
 	chatsHttp.MapChatRoutes(chatsGroup, chatsHandlers, mw)
 	fileImportGroup := v1.Group("/import")
-
 	fileImportHttp.MapImportRoutes(fileImportGroup, fileImportHandlers, mw)
+
 	scheduler.RunBirthdayCron(s.db, s.log, s.cfg)
 
 	return nil

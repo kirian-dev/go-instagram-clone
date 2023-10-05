@@ -38,6 +38,7 @@ type Config struct {
 	SMTPUser                  string
 	ClientOrigin              string
 	IsCreateTestCsvFile       bool
+	MetricsPort               string
 }
 
 func LoadConfig() (*Config, error) {
@@ -71,6 +72,7 @@ func LoadConfig() (*Config, error) {
 		SMTPPort:                  os.Getenv("SMTPPort"),
 		SMTPUser:                  os.Getenv("SMTPUser"),
 		ClientOrigin:              os.Getenv("ClientOrigin"),
+		MetricsPort:               os.Getenv("MetricsPort"),
 	}
 
 	var err error
@@ -126,6 +128,7 @@ func validateConfig(cfg *Config) error {
 		{cfg.SMTPUser, "SMTPUser"},
 		{cfg.ClientOrigin, "ClientOrigin"},
 		{cfg.IsCreateTestCsvFile, "IsCreateTestCsvFile"},
+		{cfg.MetricsPort, "MetricsPort"},
 	}
 
 	for _, field := range requiredFields {

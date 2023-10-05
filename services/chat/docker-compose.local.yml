@@ -18,3 +18,25 @@ services:
             - ./pgdata:/var/lib/postgres/data
         networks:
             - web_api
+
+    prometheus:
+        image: prom/prometheus:latest
+        container_name: prometheus
+        ports:
+            - '19090:9090'
+        volumes:
+            - ./prometheus.yml:/etc/prometheus/prometheus.yml
+        networks:
+            - web_api
+
+    grafana:
+        image: grafana/grafana-oss:9.4.3
+        ports:
+            - '13000:3000'
+        networks:
+            - web_api
+        volumes:
+            - grafana-data:/var/lib/grafana
+            
+volumes:
+    grafana-data:
