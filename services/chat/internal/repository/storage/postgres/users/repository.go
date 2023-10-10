@@ -28,6 +28,14 @@ func (r *usersRepository) convertUsers(users []*models.User) []*models.UserRespo
 	return usersConverted
 }
 
+func (r *usersRepository) CreateUser(user *models.User) (*models.User, error) {
+	if err := r.db.Create(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func (r *usersRepository) GetByID(userID uuid.UUID) (*models.User, error) {
 	var user models.User
 	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
@@ -44,17 +52,15 @@ func (r *usersRepository) GetUsers(pag *utils.PaginationQuery) (*models.UserList
 	limit := pag.GetLimit()
 
 	var totalCount int64
-
-	if err := r.db.Model(&models.User{}).
-		Count(&totalCount).
-		Error; err != nil {
-		return nil, err
-	}
-
 	var users []*models.User
 
-	query := r.db.Offset(offset).Limit(limit)
-	if err := query.Find(&users).Error; err != nil {
+	if err := r.db.
+		Model(&models.User{}).
+		Count(&totalCount).
+		Offset(offset).
+		Limit(limit).
+		Find(&users).
+		Error; err != nil {
 		return nil, err
 	}
 
@@ -91,18 +97,12 @@ func (r *usersRepository) SearchByQuery(query string, pag *utils.PaginationQuery
 	limit := pag.GetLimit()
 
 	var totalCount int64
-
-	if err := r.db.Model(&models.User{}).
-		Where("first_name LIKE ? OR last_name LIKE ?", "%"+query+"%", "%"+query+"%").
-		Count(&totalCount).
-		Error; err != nil {
-		return nil, err
-	}
-
 	var users []*models.User
 
-	if err := r.db.Model(&models.User{}).
+	if err := r.db.
+		Model(&models.User{}).
 		Where("first_name LIKE ? OR last_name LIKE ?", "%"+query+"%", "%"+query+"%").
+		Count(&totalCount).
 		Offset(offset).
 		Limit(limit).
 		Find(&users).

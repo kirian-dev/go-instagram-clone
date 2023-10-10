@@ -1,26 +1,31 @@
 package server
 
 import (
+	"errors"
 	authHttp "go-instagram-clone/services/chat/internal/delivery/http/auth"
 	chatsHttp "go-instagram-clone/services/chat/internal/delivery/http/chats"
+	fileImportHttp "go-instagram-clone/services/chat/internal/delivery/http/fileImport"
 	messagesHttp "go-instagram-clone/services/chat/internal/delivery/http/messages"
 	usersHttp "go-instagram-clone/services/chat/internal/delivery/http/users"
-	"go-instagram-clone/services/chat/internal/scheduler"
-
 	appMiddleware "go-instagram-clone/services/chat/internal/middleware"
 	authRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/auth"
 	usersRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/users"
+	"go-instagram-clone/services/chat/internal/scheduler"
+	"net/http"
 
 	chatParticipantsRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/chatParticipants"
 	chatsRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/chats"
+	fileImportRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/fileImport"
 
 	messagesRepo "go-instagram-clone/services/chat/internal/repository/storage/postgres/messages"
 	authUseCase "go-instagram-clone/services/chat/internal/useCase/auth"
+	fileImportUseCase "go-instagram-clone/services/chat/internal/useCase/fileImport"
 	usersUseCase "go-instagram-clone/services/chat/internal/useCase/users"
 
 	chatsUseCase "go-instagram-clone/services/chat/internal/useCase/chats"
 	messagesUseCase "go-instagram-clone/services/chat/internal/useCase/messages"
 
+	"github.com/labstack/echo-contrib/echoprometheus"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	echoSwagger "github.com/swaggo/echo-swagger"
@@ -33,18 +38,21 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	messagesRepo := messagesRepo.NewMessagesRepository(s.db)
 	chatRepo := chatsRepo.NewChatRepository(s.db)
 	chatParticipantsRepo := chatParticipantsRepo.NewChatParticipantRepository(s.db)
+	fileImportRepo := fileImportRepo.NewFileImportRepository(s.db)
 
 	// Init usecase
 	authUC := authUseCase.New(s.cfg, aRepo, usersRepo, s.log)
 	usersUC := usersUseCase.New(s.cfg, usersRepo, s.log)
 	messagesUC := messagesUseCase.New(s.cfg, messagesRepo, chatParticipantsRepo, chatRepo, s.log)
 	chatUC := chatsUseCase.New(s.cfg, chatRepo, chatParticipantsRepo, s.log)
+	fileImportUC := fileImportUseCase.New(s.cfg, s.log, fileImportRepo, usersRepo, aRepo)
 
 	// Init delivery
 	messagesHandlers := messagesHttp.New(s.cfg, s.log, messagesUC)
 	authHandlers := authHttp.New(s.cfg, s.log, authUC, s.analyticsClient)
 	usersHandlers := usersHttp.New(s.cfg, s.log, usersUC)
 	chatsHandlers := chatsHttp.New(s.cfg, s.log, chatUC)
+	fileImportHandlers := fileImportHttp.New(s.cfg, s.log, fileImportUC)
 
 	//Api Middleware
 	mw := appMiddleware.NewMiddlewareManager(s.cfg, s.log)
@@ -64,6 +72,18 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	e.Use(middleware.RequestID())
 	e.Use(middleware.Secure())
 	e.Use(middleware.BodyLimit("2M"))
+
+	// Add Prometheus middleware
+	e.Use(echoprometheus.NewMiddleware("chat"))
+	go func() {
+		metrics := echo.New()
+		metrics.GET("/metrics", echoprometheus.NewHandler())
+
+		if err := metrics.Start(s.cfg.MetricsPort); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.log.Fatal(err)
+		}
+	}()
+
 	v1 := e.Group("/api/v1")
 
 	authGroup := v1.Group("/auth")
@@ -74,6 +94,8 @@ func (s *Server) Handlers(e *echo.Echo) error {
 	messagesHttp.MapMessagesRoutes(messagesGroup, messagesHandlers, mw)
 	chatsGroup := v1.Group("/chats")
 	chatsHttp.MapChatRoutes(chatsGroup, chatsHandlers, mw)
+	fileImportGroup := v1.Group("/import")
+	fileImportHttp.MapImportRoutes(fileImportGroup, fileImportHandlers, mw)
 
 	scheduler.RunBirthdayCron(s.db, s.log, s.cfg)
 

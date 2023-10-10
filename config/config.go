@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -36,6 +37,8 @@ type Config struct {
 	SMTPPort                  string
 	SMTPUser                  string
 	ClientOrigin              string
+	IsCreateTestCsvFile       bool
+	MetricsPort               string
 }
 
 func LoadConfig() (*Config, error) {
@@ -69,10 +72,15 @@ func LoadConfig() (*Config, error) {
 		SMTPPort:                  os.Getenv("SMTPPort"),
 		SMTPUser:                  os.Getenv("SMTPUser"),
 		ClientOrigin:              os.Getenv("ClientOrigin"),
+		MetricsPort:               os.Getenv("MetricsPort"),
 	}
 
 	var err error
 	cfg.ReadTimeout, err = time.ParseDuration(os.Getenv("ReadTimeout"))
+	if err != nil {
+		return nil, err
+	}
+	cfg.IsCreateTestCsvFile, err = strconv.ParseBool(os.Getenv("IsCreateTestCsvFile"))
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +127,8 @@ func validateConfig(cfg *Config) error {
 		{cfg.SMTPPort, "SMTPPort"},
 		{cfg.SMTPUser, "SMTPUser"},
 		{cfg.ClientOrigin, "ClientOrigin"},
+		{cfg.IsCreateTestCsvFile, "IsCreateTestCsvFile"},
+		{cfg.MetricsPort, "MetricsPort"},
 	}
 
 	for _, field := range requiredFields {

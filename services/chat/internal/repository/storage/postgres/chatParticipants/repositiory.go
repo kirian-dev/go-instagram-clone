@@ -1,9 +1,7 @@
 package chatParticipants
 
 import (
-	"errors"
 	"go-instagram-clone/services/chat/internal/domain/models"
-	"time"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -18,8 +16,6 @@ func NewChatParticipantRepository(db *gorm.DB) *ChatParticipantRepository {
 }
 
 func (r *ChatParticipantRepository) CreateChatParticipant(participant *models.ChatParticipant) error {
-	participant.ChatParticipantID = uuid.New()
-	participant.JoinedAt = time.Now()
 	if err := r.db.Create(participant).Error; err != nil {
 		return err
 	}
@@ -32,20 +28,14 @@ func (r *ChatParticipantRepository) GetChatByParticipants(participants []models.
 		userIds = append(userIds, participant.UserID)
 	}
 
-	// Query the database to find a chat with the given participants
 	var chat models.Chat
-	result := r.db.Table("chat_participants").
-		Select("chat_id").
-		Where("user_id IN (?)", userIds).
-		Group("chat_id").
-		Having("COUNT(DISTINCT user_id) = ?", len(participants)).
-		First(&chat)
+	query := r.db.Where("user_id IN (?)", userIds).Group("chat_id").Having("COUNT(DISTINCT user_id) = ?", len(participants))
+	result := query.Table("chat_participants").Select("chat_id").First(&chat)
 
-	if result.Error != nil && result.RowsAffected == 0 {
+	if result.Error != nil {
 		return nil, result.Error
 	}
 
-	// Load the chat details
 	if err := r.db.Where("chat_id = ?", chat.ChatID).First(&chat).Error; err != nil {
 		return nil, err
 	}
@@ -76,26 +66,26 @@ func (r *ChatParticipantRepository) DeleteParticipantsByChatID(chatID uuid.UUID)
 	return nil
 }
 
-func (r *ChatParticipantRepository) IsParticipantInChat(chatID uuid.UUID, userID uuid.UUID) (bool, error) {
-	var participant models.ChatParticipant
-	result := r.db.Where("chat_id = ? AND user_id = ?", chatID, userID).First(&participant)
-
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return false, nil
+func (r *ChatParticipantRepository) IsParticipantInChat(chatID, userID uuid.UUID) (bool, error) {
+	var count int64
+	query := r.db.Table("chat_participants").
+		Where("chat_id = ? AND user_id = ?", chatID, userID).
+		Count(&count)
+	if query.Error != nil {
+		return false, query.Error
 	}
-
-	return true, nil
+	return count > 0, nil
 }
 
-func (r *ChatParticipantRepository) IsParticipantAdmin(chatID uuid.UUID, userID uuid.UUID) (bool, error) {
-	var participant models.ChatParticipant
-	result := r.db.Where("chat_id = ? AND user_id = ? AND role = ?", chatID, userID, models.Admin).First(&participant)
-
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return false, nil
+func (r *ChatParticipantRepository) IsParticipantAdmin(chatID, userID uuid.UUID) (bool, error) {
+	var count int64
+	query := r.db.Table("chat_participants").
+		Where("chat_id = ? AND user_id = ? AND role = ?", chatID, userID, models.Admin).
+		Count(&count)
+	if query.Error != nil {
+		return false, query.Error
 	}
-
-	return true, nil
+	return count > 0, nil
 }
 
 func (r *ChatParticipantRepository) DeleteParticipantFromChat(chatID, participantID uuid.UUID) error {

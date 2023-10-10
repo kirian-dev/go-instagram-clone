@@ -17,8 +17,6 @@ func NewMessagesRepository(db *gorm.DB) *messagesRepository {
 }
 
 func (r *messagesRepository) CreateMessage(message *models.Message) (*models.Message, error) {
-	message.ReadAt = false
-	message.ID = uuid.New()
 
 	if err := r.db.Create(message).Error; err != nil {
 		return nil, err
@@ -38,18 +36,16 @@ func (r *messagesRepository) GetMessages(userID uuid.UUID, pag *utils.Pagination
 	limit := pag.GetLimit()
 
 	var totalCount int64
-
-	if err := r.db.Model(&models.Message{}).
-		Where("sender_id = ?", userID).
-		Count(&totalCount).
-		Error; err != nil {
-		return nil, err
-	}
-
 	var messages []*models.Message
 
-	query := r.db.Where("sender_id = ?", userID).Offset(offset).Limit(limit)
-	if err := query.Find(&messages).Error; err != nil {
+	if err := r.db.
+		Model(&models.Message{}).
+		Where("sender_id = ?", userID).
+		Count(&totalCount).
+		Offset(offset).
+		Limit(limit).
+		Find(&messages).
+		Error; err != nil {
 		return nil, err
 	}
 
@@ -72,20 +68,13 @@ func (r *messagesRepository) SearchByText(userID uuid.UUID, text string, pag *ut
 	limit := pag.GetLimit()
 
 	var totalCount int64
-
-	// Count total messages that match the query
-	if err := r.db.Model(&models.Message{}).
-		Where("sender_id = ? AND text LIKE ?", userID, "%"+text+"%").
-		Count(&totalCount).
-		Error; err != nil {
-		return nil, err
-	}
-
 	var messages []*models.Message
 
-	if err := r.db.Model(&models.Message{}).
-		Select("sender_id, text").
+	if err := r.db.
+		Model(&models.Message{}).
 		Where("sender_id = ? AND text LIKE ?", userID, "%"+text+"%").
+		Count(&totalCount).
+		Select("sender_id, text").
 		Offset(offset).
 		Limit(limit).
 		Find(&messages).

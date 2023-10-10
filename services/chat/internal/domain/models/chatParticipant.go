@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type ChatParticipant struct {
@@ -20,3 +21,9 @@ const (
 	Admin  ParticipantRole = "admin"
 	Member ParticipantRole = "member"
 )
+
+func (cp *ChatParticipant) BeforeCreate(tx *gorm.DB) (err error) {
+	cp.ChatParticipantID = uuid.New()
+	cp.JoinedAt = time.Now()
+	return nil
+}

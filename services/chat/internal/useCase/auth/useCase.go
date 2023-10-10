@@ -45,11 +45,6 @@ func (uc *authUC) Register(user *models.User) (*models.UserResponse, error) {
 		return nil, errors.New(e.ErrPhoneNotExists)
 	}
 
-	if err := models.BeforeCreate(user); err != nil {
-		uc.log.Error("Error in BeforeCreate:", err)
-		return nil, err
-	}
-
 	newUser, err := uc.authRepo.Register(user)
 	if err != nil {
 		uc.log.Error("Error in Register:", err)

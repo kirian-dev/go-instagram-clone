@@ -45,7 +45,7 @@ func main() {
 	grpcServer := grpc.NewServer()
 	deliveryGrpc.NewAnalyticsServerGrpc(cfg, log, analyticsUC, grpcServer)
 
-	log.Info("Server is running on..", cfg.AnalyticsPort)
+	log.Info("Server grpc analytics is running on..", cfg.AnalyticsPort)
 
 	if err := grpcServer.Serve(lis); err != nil {
 		log.Fatalf("Failed to serve: %v", err)

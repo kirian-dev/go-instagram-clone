@@ -22,6 +22,7 @@ type UsersRepository interface {
 	UpdateUser(user *models.User) (*models.User, error)
 	DeleteUser(userID uuid.UUID) error
 	SearchByQuery(query string, pag *utils.PaginationQuery) (*models.UserListResponse, error)
+	CreateUser(user *models.User) (*models.User, error)
 }
 
 type MessagesRepository interface {
@@ -49,4 +50,11 @@ type ChatParticipantRepository interface {
 	IsParticipantInChat(chatID uuid.UUID, userID uuid.UUID) (bool, error)
 	IsParticipantAdmin(chatID uuid.UUID, userID uuid.UUID) (bool, error)
 	DeleteParticipantFromChat(chatID, participant uuid.UUID) error
+}
+
+type FileImportRepository interface {
+	CreateFile(fileImport *models.FileImport) (*models.FileImport, error)
+	UpdateFile(fileImport *models.FileImport) (*models.FileImport, error)
+	GetImportFiles() ([]*models.FileImport, error)
+	GetImportFileByID(fileID uuid.UUID) (*models.FileImport, error)
 }

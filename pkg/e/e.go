@@ -37,4 +37,8 @@ const (
 	ErrMessageNotFound           = "message not found"
 	ErrPasswordDoesNotMatch      = "password does not match"
 	ErrEmailMustBeVerified       = "email must be verified"
+	ErrFailedToGetFile           = "Failed to receive file"
+	ErrBigFileSize               = "File size exceeds 2MB"
+	ErrFileMustBeCSV             = "The file must be in CSV format"
+	ErrCreateFile                = "Create file failed"
 )

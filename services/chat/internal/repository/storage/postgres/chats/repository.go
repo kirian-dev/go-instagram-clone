@@ -16,7 +16,6 @@ func NewChatRepository(db *gorm.DB) *chatRepository {
 }
 
 func (r *chatRepository) CreateChat(chat *models.Chat) (*models.Chat, error) {
-	chat.ChatID = uuid.New()
 	if err := r.db.Create(chat).Error; err != nil {
 		return nil, err
 	}

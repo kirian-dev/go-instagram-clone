@@ -42,3 +42,9 @@ type ChatHandlers interface {
 	AddParticipantsToChat() echo.HandlerFunc
 	RemoveParticipantFromChat() echo.HandlerFunc
 }
+
+type FileImportHandlers interface {
+	GetImportStatus() echo.HandlerFunc
+	GetImportList() echo.HandlerFunc
+	UploadFile() echo.HandlerFunc
+}
